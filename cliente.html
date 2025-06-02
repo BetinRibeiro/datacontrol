@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataControl | Sistema de Gerenciamento de Dados</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/favicon.png">
+
+    <!-- Open Graph (Facebook, LinkedIn, etc) -->
+    <meta property="og:title" content="DataControl – Gerencie Dados com Eficiência">
+    <meta property="og:description" content="Solução completa para visualizar, exportar e importar dados do LocalStorage com simplicidade e segurança.">
+    <meta property="og:url" content="https://betinribeiro.github.io/datacontrol/">
+    <meta property="og:image" content="https://betinribeiro.github.io/datacontrol/assets/preview.png">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="DataControl – Gerencie Dados com Eficiência">
+    <meta name="twitter:description" content="Solução completa para visualizar, exportar e importar dados do LocalStorage com simplicidade e segurança.">
+    <meta name="twitter:image" content="https://betinribeiro.github.io/datacontrol/assets/preview.png">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        secondary: '#3f37c9',
+                        dark: '#1d3557',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        light: '#f8f9fa'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .slide-fade-enter-active, .slide-fade-leave-active {
+            transition: all 0.3s ease;
+        }
+        .slide-fade-enter-from, .slide-fade-leave-to {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        .animate-pulse-custom {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Cabeçalho -->
+        <header class="flex flex-col sm:flex-row justify-between items-start gap-6 mb-10">
+            <div>
+                <h1 class="text-3xl font-bold text-dark flex items-center gap-2">
+                    <i class="fas fa-user-tie text-primary"></i>
+                     <a href="index.html" >
+                    Gestão de Clientes
+                    </a>
+                </h1>
+                <p class="text-gray-600">Cadastro e administração de sua carteira de clientes</p>
+            </div>
+            
+            <!-- Abas para alternar entre clientes e credenciais -->
+            <div class="flex flex-col items-end w-full sm:w-auto">
+                <nav class="flex gap-4 mb-4 border-b border-gray-200">
+                    <span class="inline-flex items-center px-3 py-2 border-b-2 border-primary text-primary font-medium">
+                         <i class="fas fa-user-tie mr-2"></i>Clientes
+                    </span>
+
+                    <a href="credencial.html" class="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-900">
+                       <i class="fas fa-key mr-2"></i> Credenciais
+                    </a>
+
+                    <a href="financeiro.html" class="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-900" >
+                        <i class="fas fa-money-bill-wave mr-2"></i> Pagamentos
+                    </a>
+                    <a href="campanha.html" class="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-900" >
+                            <i class="fas fa-bullhorn mr-2"></i> Campanhas
+                    </a>
+
+                </nav>
+                
+                <div class="flex flex-wrap items-center gap-3">
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="Buscar cliente..." class="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
+                    <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <button onclick="openFormModal()" class="bg-primary hover:bg-secondary transition flex items-center gap-2 text-white px-4 py-2 rounded-lg">
+                    <i class="fas fa-plus"></i>
+                    <span class="hidden sm:inline">Novo Cliente</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Resumo estatístico -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-primary">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Total de Clientes</p>
+                        <h2 id="total-clients" class="text-3xl font-bold text-gray-800">0</h2>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-users text-xl text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Atualizados Recentemente</p>
+                        <h2 id="updated-clients" class="text-3xl font-bold text-gray-800">0</h2>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-sync-alt text-xl text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Ativos</p>
+                        <h2 id="active-clients" class="text-3xl font-bold text-gray-800">0</h2>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-check-circle text-xl text-purple-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Segmentações</p>
+                        <h2 id="segmentation-count" class="text-3xl font-bold text-gray-800">0</h2>
+                    </div>
+                    <div class="bg-yellow-100 p-3 rounded-full">
+                        <i class="fas fa-tags text-xl text-yellow-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Clientes -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onclick="sortClients('name')">
+                                <div class="flex items-center gap-1">
+                                    Cliente 
+                                    <i id="sort-name-icon" class="fas fa-sort text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empresa</th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contato</th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onclick="sortClients('niche')">
+                                <div class="flex items-center gap-1">
+                                    Nicho 
+                                    <i id="sort-niche-icon" class="fas fa-sort text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="client-table-body" class="divide-y divide-gray-200">
+                        <!-- Os clientes serão inseridos aqui via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Loading infinito e mensagem de sem resultados -->
+            <div id="loading-container" class="p-6 hidden">
+                <div class="flex justify-center items-center gap-3">
+                    <div class="animate-spin rounded-full h-6 w-6 border-t-2 border-l-2 border-primary"></div>
+                    <p class="text-gray-600">Carregando mais clientes...</p>
+                </div>
+            </div>
+            
+            <div id="no-results" class="p-10 text-center hidden">
+                <div class="mb-4 text-gray-400">
+                    <i class="fas fa-users-slash text-4xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum cliente encontrado</h3>
+                <p class="text-gray-500">Clique em "Novo Cliente" para começar a cadastrar</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Formulário -->
+    <div id="form-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden transition-opacity opacity-0">
+        <div class="bg-white rounded-xl w-full max-w-2xl shadow-xl transition-transform transform">
+            <div class="border-b border-gray-200 px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-semibold text-gray-800" id="form-modal-title">Novo Cliente</h2>
+                    <button onclick="closeFormModal()" class="text-gray-400 hover:text-gray-600 rounded-full h-8 w-8 flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="client-form" class="p-6">
+                <input type="hidden" id="client-id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="name" class="block mb-2 text-sm font-medium text-gray-700">Nome *</label>
+                        <input type="text" id="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-primary focus:border-primary outline-none transition">
+                        <p id="name-error" class="mt-1 text-sm text-danger hidden">Por favor, informe um nome válido</p>
+                    </div>
+                    
+                    <div>
+                        <label for="company" class="block mb-2 text-sm font-medium text-gray-700">Empresa *</label>
+                        <input type="text" id="company" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-primary focus:border-primary outline-none transition">
+                        <p id="company-error" class="mt-1 text-sm text-danger hidden">Por favor, informe uma empresa</p>
+                    </div>
+                    
+                    <div>
+                        <label for="email" class="block mb-2 text-sm font-medium text-gray-700">E-mail *</label>
+                        <input type="email" id="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-primary focus:border-primary outline-none transition">
+                        <p id="email-error" class="mt-1 text-sm text-danger hidden">Por favor, informe um e-mail válido</p>
+                    </div>
+                    
+                    <div>
+                        <label for="phone" class="block mb-2 text-sm font-medium text-gray-700">Telefone *</label>
+                        <input type="text" id="phone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-primary focus:border-primary outline-none transition">
+                        <p id="phone-error" class="mt-1 text-sm text-danger hidden">Por favor, informe um telefone válido (mínimo 10 dígitos)</p>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="niche" class="block mb-2 text-sm font-medium text-gray-700">Nicho de Atuação</label>
+                        <select id="niche" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-primary focus:border-primary outline-none transition">
+                            <option value="">Selecione um nicho</option>
+                            <option value="Tecnologia">Tecnologia</option>
+                            <option value="Saúde">Saúde</option>
+                            <option value="Educação">Educação</option>
+                            <option value="Finanças">Finanças</option>
+                            <option value="Comércio">Comércio</option>
+                            <option value="Serviços">Serviços</option>
+                            <option value="Indústria">Indústria</option>
+                            <option value="Alimentício">Alimentício</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end gap-3">
+                    <button type="button" onclick="closeFormModal()" class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bg-primary hover:bg-secondary transition flex items-center gap-2 px-4 py-2 text-white rounded-lg">
+                        <i class="fas fa-save"></i>
+                        <span>Salvar Cliente</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal de Confirmação de Exclusão -->
+    <div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity">
+        <div class="bg-white rounded-xl w-full max-w-md p-6">
+            <div class="text-center mb-5">
+                <div class="mx-auto bg-red-100 p-3 rounded-full w-16 h-16 flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-xl text-red-600"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 text-center mb-2">Excluir Cliente</h3>
+            <p class="text-gray-500 text-center mb-6">Tem certeza que deseja excluir permanentemente este cliente?</p>
+            <p id="client-to-delete" class="text-center font-medium mb-4 text-lg"></p>
+            <div class="flex justify-center gap-3">
+                <button onclick="closeDeleteModal()" class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition">
+                    Cancelar
+                </button>
+                <button id="confirm-delete" class="bg-red-600 hover:bg-red-700 transition flex items-center gap-2 px-4 py-2 text-white rounded-lg">
+                    <i class="fas fa-trash"></i>
+                    <span>Sim, Excluir</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast de Confirmação -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-success text-white py-3 px-6 rounded-lg shadow-lg flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-300 z-50">
+        <i id="toast-icon" class="fas fa-check-circle"></i>
+        <span id="toast-message">Operação realizada com sucesso!</span>
+    </div>
+
+    <script>
+        // Inicialização de dados
+        const CLIENTS_KEY = 'client_data';
+        const CLIENTS_PER_PAGE = 10;
+        
+        // Variáveis globais
+        let clients = [];
+        let filteredClients = [];
+        let currentPage = 1;
+        let isLoading = false;
+        let currentClientToDelete = null;
+        let currentEditId = null;
+        let sortConfig = { key: null, direction: 'asc' };
+
+        // Elementos DOM
+        const tableBody = document.getElementById('client-table-body');
+        const loadingContainer = document.getElementById('loading-container');
+        const noResults = document.getElementById('no-results');
+        const totalClientsEl = document.getElementById('total-clients');
+        const updatedClientsEl = document.getElementById('updated-clients');
+        const activeClientsEl = document.getElementById('active-clients');
+        const segmentationCountEl = document.getElementById('segmentation-count');
+        const formModal = document.getElementById('form-modal');
+        const deleteModal = document.getElementById('delete-modal');
+        const confirmDeleteBtn = document.getElementById('confirm-delete');
+        const clientForm = document.getElementById('client-form');
+        const clientIdInput = document.getElementById('client-id');
+        const clientToDeleteEl = document.getElementById('client-to-delete');
+        const searchInput = document.getElementById('search-input');
+        const toast = document.getElementById('toast');
+        
+        // Formatadores
+        function formatPhoneNumber(phone) {
+            // Remove tudo que não é dígito
+            const cleaned = ('' + phone).replace(/\D/g, '');
+            
+            // Verifica se o telefone tem pelo menos 10 dígitos
+            if (cleaned.length < 10) {
+                return phone; // Retorna original se não for válido
+            }
+            
+            // Aplica a formatação baseada no tamanho
+            const match = cleaned.match(/^(\d{0,2})(\d{0,5})(\d{0,4})$/);
+            if (match) {
+                let formatted = '';
+                if (match[1]) formatted = `(${match[1]}`;
+                if (match[2]) formatted += `) ${match[2]}`;
+                if (match[3]) formatted += `-${match[3]}`;
+                
+                return formatted;
+            }
+            return phone;
+        }
+
+        // Função auxiliar para remover acentos
+        function removeAccents(str) {
+            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        function initApp() {
+            // Carregar clientes do localStorage
+            loadClientsFromStorage();
+            updateStats();
+            renderClients();
+            
+            // Event Listeners
+            window.addEventListener('scroll', handleScroll);
+            clientForm.addEventListener('submit', handleFormSubmit);
+            confirmDeleteBtn.addEventListener('click', handleDelete);
+            searchInput.addEventListener('input', handleSearch);
+            
+            // Máscara de telefone
+            document.getElementById('phone').addEventListener('input', function(e) {
+                e.target.value = formatPhoneNumber(e.target.value);
+            });
+        }
+
+        // Carrega dados do localStorage
+        function loadClientsFromStorage() {
+            const savedClients = localStorage.getItem(CLIENTS_KEY);
+            if (savedClients) {
+                try {
+                    clients = JSON.parse(savedClients);
+                    filteredClients = [...clients];
+                    console.log('Clientes carregados do localStorage:', clients.length);
+                } catch (e) {
+                    console.error('Erro ao carregar clientes:', e);
+                    clients = [];
+                    filteredClients = [];
+                }
+            } else {
+                // Se não há dados, gerar dados de exemplo
+                console.log('Gerando dados de exemplo...');
+                clients = generateSampleData();
+                filteredClients = [...clients];
+                saveClientsToStorage();
+            }
+        }
+
+        // Gera dados de exemplo
+        function generateSampleData() {
+            const names = ['João Silva', 'Maria Oliveira', 'Carlos Souza', 'Ana Paula', 'Ricardo Santos', 
+                          'Fernanda Lima', 'Lucas Pereira', 'Juliana Costa', 'Roberto Almeida', 'Patricia Mendes'];
+            const companies = ['Tech Solutions', 'Health Plus', 'EduCon', 'FinanceHub', 'MarketPlace', 
+                             'ServiceMaster', 'Industry Pro', 'Food Delight', 'Logistics Now', 'BuildTech'];
+            const niches = ['Tecnologia', 'Saúde', 'Educação', 'Finanças', 'Comércio', 'Serviços', 'Indústria', 'Alimentício', 'Logística', 'Construção'];
+            
+            const sampleData = [];
+            
+            for (let i = 0; i < 20; i++) {
+                const name = names[Math.floor(Math.random() * names.length)];
+                const company = companies[Math.floor(Math.random() * companies.length)];
+                const email = `${name.split(' ')[0].toLowerCase()}${Math.floor(Math.random() * 100)}@${company.split(' ').join('').toLowerCase()}.com`.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                const phone = `55119${Math.floor(1000 + Math.random() * 9000)}${Math.floor(1000 + Math.random() * 9000)}`;
+                const niche = niches[Math.floor(Math.random() * niches.length)];
+                
+                sampleData.push({
+                    id: 'sample_' + Date.now() + '_' + i,
+                    name,
+                    company,
+                    email,
+                    phone,
+                    niche,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+            }
+            
+            return sampleData;
+        }
+
+        // Salva dados no localStorage
+        function saveClientsToStorage() {
+            localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients));
+            updateStats();
+        }
+
+        // Atualiza as estatísticas
+        function updateStats() {
+            totalClientsEl.textContent = clients.length;
+            
+            // Atualizados nos últimos 7 dias
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const updatedCount = clients.filter(client => {
+                return new Date(client.updatedAt) > oneWeekAgo;
+            }).length;
+            updatedClientsEl.textContent = updatedCount;
+            
+            // Clientes ativos (com e-mail válido e empresa)
+            const activeCount = clients.filter(client => {
+                return client.email && client.email.includes('@') && client.company;
+            }).length;
+            activeClientsEl.textContent = activeCount;
+            
+            // Contagem de segmentos diferentes
+            const niches = [...new Set(clients.map(c => c.niche).filter(n => n))];
+            segmentationCountEl.textContent = niches.length;
+        }
+
+        // Renderiza os clientes na tabela
+        function renderClients() {
+            // Limpa a tabela
+            tableBody.innerHTML = '';
+            
+            if (filteredClients.length === 0) {
+                noResults.classList.remove('hidden');
+                loadingContainer.classList.add('hidden');
+                return;
+            }
+            
+            noResults.classList.add('hidden');
+            
+            // Ordena antes de renderizar, se necessário
+            let clientsToRender = [...filteredClients];
+            if (sortConfig.key) {
+                clientsToRender.sort((a, b) => {
+                    if (a[sortConfig.key] < b[sortConfig.key]) {
+                        return sortConfig.direction === 'asc' ? -1 : 1;
+                    }
+                    if (a[sortConfig.key] > b[sortConfig.key]) {
+                        return sortConfig.direction === 'asc' ? 1 : -1;
+                    }
+                    return 0;
+                });
+            }
+            
+            // Paginação simulada para carregamento infinito
+            const startIndex = 0;
+            const endIndex = Math.min(currentPage * CLIENTS_PER_PAGE, clientsToRender.length);
+            const currentClients = clientsToRender.slice(startIndex, endIndex);
+            
+            // Gera HTML para cada cliente
+            let html = '';
+            currentClients.forEach(client => {
+                html += `
+                <tr class="client-row hover:bg-gray-50 transition">
+                    <td class="py-4 px-6 whitespace-nowrap">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center">
+                                <i class="fas fa-user text-gray-500"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">${client.name}</p>
+                                <p class="text-sm text-gray-500">ID: ${client.id}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <p class="text-gray-900">${client.company}</p>
+                    </td>
+                    <td class="py-4 px-6">
+                        <p class="text-gray-900">${client.email}</p>
+                        <p class="text-sm text-gray-500">${formatPhoneNumber(client.phone)}</p>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                            ${client.niche || 'Não especificado'}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        <div class="flex gap-2 justify-end">
+                            <button onclick="openEditModal('${client.id}')" class="p-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="openDeleteModal('${client.id}')" class="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+            
+            // Mostra loading se tiver mais itens
+            if (endIndex < clientsToRender.length) {
+                loadingContainer.classList.remove('hidden');
+            } else {
+                loadingContainer.classList.add('hidden');
+            }
+        }
+
+        // Gera ID único para clientes
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+        }
+
+        // Abre o modal do formulário para criação
+        function openFormModal() {
+            resetForm();
+            document.getElementById('form-modal-title').textContent = 'Novo Cliente';
+            formModal.classList.remove('hidden');
+            setTimeout(() => {
+                formModal.style.opacity = '1';
+            }, 10);
+        }
+
+        // Abre o modal do formulário para edição
+        function openEditModal(id) {
+            const client = clients.find(c => c.id === id);
+            if (!client) return;
+            
+            currentEditId = id;
+            document.getElementById('form-modal-title').textContent = 'Editar Cliente';
+            document.getElementById('client-id').value = client.id;
+            document.getElementById('name').value = client.name;
+            document.getElementById('company').value = client.company;
+            document.getElementById('email').value = client.email;
+            document.getElementById('phone').value = formatPhoneNumber(client.phone);
+            document.getElementById('niche').value = client.niche || '';
+            
+            formModal.classList.remove('hidden');
+            setTimeout(() => {
+                formModal.style.opacity = '1';
+            }, 10);
+        }
+
+        // Fecha o modal do formulário
+        function closeFormModal() {
+            formModal.style.opacity = '0';
+            setTimeout(() => {
+                formModal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Reseta o formulário
+        function resetForm() {
+            document.getElementById('client-id').value = '';
+            document.getElementById('name').value = '';
+            document.getElementById('company').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('niche').value = '';
+            
+            // Resetar erros
+            ['name', 'company', 'email', 'phone'].forEach(id => {
+                document.getElementById(`${id}-error`).classList.add('hidden');
+            });
+            
+            currentEditId = null;
+        }
+
+        // Valida os dados do formulário
+        function validateFormData() {
+            let isValid = true;
+            
+            const fields = [
+                { id: 'name', message: 'Por favor, informe um nome válido' },
+                { id: 'company', message: 'Por favor, informe uma empresa' },
+                { id: 'email', message: 'Por favor, informe um e-mail válido' },
+                { id: 'phone', message: 'Por favor, informe um telefone válido' }
+            ];
+            
+            fields.forEach(field => {
+                const input = document.getElementById(field.id);
+                const errorElement = document.getElementById(`${field.id}-error`);
+                
+                if (!input.value.trim()) {
+                    errorElement.textContent = field.message;
+                    errorElement.classList.remove('hidden');
+                    isValid = false;
+                } else {
+                    errorElement.classList.add('hidden');
+                }
+            });
+            
+            // Validação adicional para telefone (precisa ter pelo menos 10 dígitos)
+            const phoneInput = document.getElementById('phone');
+            const phoneDigits = phoneInput.value.replace(/\D/g, '');
+            if (phoneDigits.length < 10) {
+                document.getElementById('phone-error').textContent = 'Por favor, informe um telefone válido (mínimo 10 dígitos)';
+                document.getElementById('phone-error').classList.remove('hidden');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        // Manipula o envio do formulário
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            if (!validateFormData()) return;
+            
+            const name = document.getElementById('name').value;
+            const company = document.getElementById('company').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value.replace(/\D/g, '');
+            const niche = document.getElementById('niche').value || null;
+            
+            const client = { 
+                name, 
+                company, 
+                email, 
+                phone, 
+                niche,
+                updatedAt: new Date().toISOString(),
+                createdAt: new Date().toISOString()
+            };
+            
+            if (currentEditId) {
+                client.id = currentEditId;
+                client.createdAt = clients.find(c => c.id === currentEditId).createdAt;
+                updateClient(client);
+                showToast('Cliente atualizado com sucesso!');
+            } else {
+                client.id = generateId();
+                createClient(client);
+                showToast('Cliente criado com sucesso!');
+            }
+            
+            closeFormModal();
+        }
+
+        // Cria um novo cliente
+        function createClient(client) {
+            clients.unshift(client);
+            filteredClients.unshift(client);
+            saveClientsToStorage();
+            resetClientsView();
+        }
+
+        // Atualiza um cliente existente
+        function updateClient(updatedClient) {
+            const index = clients.findIndex(c => c.id === updatedClient.id);
+            if (index === -1) return;
+            
+            clients[index] = updatedClient;
+            
+            // Atualiza também no filteredClients
+            const filteredIndex = filteredClients.findIndex(c => c.id === updatedClient.id);
+            if (filteredIndex !== -1) {
+                filteredClients[filteredIndex] = updatedClient;
+            }
+            
+            saveClientsToStorage();
+            resetClientsView();
+        }
+
+        // Abre o modal de confirmação de exclusão
+        function openDeleteModal(id) {
+            const client = clients.find(c => c.id === id);
+            if (!client) return;
+            
+            currentClientToDelete = id;
+            clientToDeleteEl.textContent = `${client.name} - ${client.company}`;
+            deleteModal.classList.remove('hidden');
+            setTimeout(() => {
+                deleteModal.style.opacity = '1';
+            }, 10);
+        }
+
+        // Fecha o modal de confirmação de exclusão
+        function closeDeleteModal() {
+            deleteModal.style.opacity = '0';
+            setTimeout(() => {
+                deleteModal.classList.add('hidden');
+                currentClientToDelete = null;
+            }, 300);
+        }
+
+        // Exclui um cliente
+        function handleDelete() {
+            if (!currentClientToDelete) return;
+            
+            clients = clients.filter(c => c.id !== currentClientToDelete);
+            filteredClients = filteredClients.filter(c => c.id !== currentClientToDelete);
+            saveClientsToStorage();
+            resetClientsView();
+            
+            showToast('Cliente excluído com sucesso!', 'danger');
+            closeDeleteModal();
+        }
+
+        // Atualiza a visualização dos clientes
+        function resetClientsView() {
+            currentPage = 1;
+            renderClients();
+        }
+
+        // Ordenação de clientes
+        function sortClients(key) {
+            if (sortConfig.key === key) {
+                sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortConfig.key = key;
+                sortConfig.direction = 'asc';
+            }
+            
+            // Atualiza ícones
+            document.querySelectorAll('[id^="sort-"]').forEach(icon => {
+                icon.className = 'fas fa-sort text-gray-400';
+            });
+            
+            const icon = document.getElementById(`sort-${key}-icon`);
+            if (icon) {
+                icon.className = sortConfig.direction === 'asc' ? 
+                    'fas fa-sort-up text-primary' : 
+                    'fas fa-sort-down text-primary';
+            }
+            
+            renderClients();
+        }
+
+        // Manipula busca de clientes (corrigida)
+        function handleSearch() {
+            const term = searchInput.value.toLowerCase().trim();
+            
+            if (!term) {
+                filteredClients = [...clients];
+                resetClientsView();
+                return;
+            }
+            
+            // Filtra considerando maiúsculas/minúsculas e remoção de acentos
+            filteredClients = clients.filter(client => {
+                return (
+                    (client.name && removeAccents(client.name.toLowerCase()).includes(removeAccents(term))) ||
+                    (client.company && removeAccents(client.company.toLowerCase()).includes(removeAccents(term))) ||
+                    (client.email && client.email.toLowerCase().includes(term)) ||
+                    (client.niche && removeAccents(client.niche.toLowerCase()).includes(removeAccents(term))) ||
+                    (client.phone && client.phone.includes(term.replace(/\D/g, '')))
+                );
+            });
+            
+            resetClientsView();
+        }
+
+        // Manipula o scroll para carregar mais clientes
+        function handleScroll() {
+            if (isLoading) return;
+            
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            const scrollPosition = scrollTop + clientHeight;
+            
+            if (scrollPosition >= scrollHeight - 100 && 
+                (currentPage * CLIENTS_PER_PAGE) < filteredClients.length) {
+                loadMoreClients();
+            }
+        }
+
+        // Carrega mais clientes
+        function loadMoreClients() {
+            isLoading = true;
+            loadingContainer.classList.remove('hidden');
+            
+            // Simula tempo de carregamento
+            setTimeout(() => {
+                currentPage++;
+                renderClients();
+                isLoading = false;
+            }, 800);
+        }
+
+        // Mostra toast de confirmação
+        function showToast(message, type = 'success') {
+            const toastIcon = document.getElementById('toast-icon');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.className = `fixed bottom-6 right-6 text-white py-3 px-6 rounded-lg shadow-lg flex items-center gap-3 z-50`;
+            
+            if (type === 'success') {
+                toast.classList.add('bg-success');
+                toastIcon.className = 'fas fa-check-circle';
+            } else {
+                toast.classList.add('bg-danger');
+                toastIcon.className = 'fas fa-exclamation-circle';
+            }
+            
+            toast.classList.remove('opacity-0');
+            toast.classList.remove('translate-y-10');
+            toast.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                toast.classList.add('translate-y-10');
+            }, 3000);
+        }
+
+        // Renderiza os clientes ao carregar
+        renderClients();
+    </script>
+</body>
+</html>

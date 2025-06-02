@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataControl | Sistema de Gerenciamento de Dados</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+        <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/favicon.png">
+
+    <!-- Open Graph (Facebook, LinkedIn, etc) -->
+    <meta property="og:title" content="DataControl – Gerencie Dados com Eficiência">
+    <meta property="og:description" content="Solução completa para visualizar, exportar e importar dados do LocalStorage com simplicidade e segurança.">
+    <meta property="og:url" content="https://betinribeiro.github.io/datacontrol/">
+    <meta property="og:image" content="https://betinribeiro.github.io/datacontrol/assets/preview.png">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="DataControl – Gerencie Dados com Eficiência">
+    <meta name="twitter:description" content="Solução completa para visualizar, exportar e importar dados do LocalStorage com simplicidade e segurança.">
+    <meta name="twitter:image" content="https://betinribeiro.github.io/datacontrol/assets/preview.png">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        secondary: '#3f37c9',
+                        dark: '#1d3557',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        light: '#f8f9fa'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .slide-fade-enter-active, .slide-fade-leave-active {
+            transition: all 0.3s ease;
+        }
+        .slide-fade-enter-from, .slide-fade-leave-to {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        
+        .bounce-enter-active {
+            animation: bounce-in 0.3s;
+        }
+        .bounce-leave-active {
+            animation: bounce-in 0.3s reverse;
+        }
+        @keyframes bounce-in {
+            0% {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        /* Tipo de credencial icons */
+        .credential-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 20px;
+        }
+        .credential-facebook {
+            background-color: #3b5998;
+            color: white;
+        }
+        .credential-whatsapp {
+            background-color: #25d366;
+            color: white;
+        }
+        .credential-google {
+            background-color: #4285f4;
+            color: white;
+        }
+        .credential-instagram {
+            background: #f09433;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: white;
+        }
+        .credential-twitter {
+            background-color: #1da1f2;
+            color: white;
+        }
+        .credential-bm {
+            background-color: #0f172a;
+            color: white;
+        }
+        .credential-default {
+            background-color: #6366f1;
+            color: white;
+        }
+        
+        /* Password visibility toggle */
+        .password-input-wrapper {
+            position: relative;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Cabeçalho -->
+        <header class="flex flex-col sm:flex-row justify-between items-start gap-6 mb-10">
+            <div>
+                <h1 class="text-3xl font-bold text-dark flex items-center gap-2">
+                    <i class="fas fa-key text-primary"></i>
+                     <a href="index.html" >
+                    Gestão de Credenciais
+                    </a>
+                </h1>
+                <p class="text-gray-600">Acessos e credenciais vinculados aos clientes</p>
+            </div>
+            
+            <!-- Abas para alternar entre clientes e credenciais -->
+            <div class="flex flex-col items-end w-full sm:w-auto">
+                <nav class="flex gap-4 mb-4 border-b border-gray-200">
+                    <a href="cliente.html" class="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-900">
+                        <i class="fas fa-user-tie mr-2"></i> Clientes
+                    </a>
+                    <span class="inline-flex items-center px-3 py-2 border-b-2 border-primary text-primary font-medium">
+                        <i class="fas fa-key mr-2"></i> Credenciais
+                    </span>
+
+                    <a href="financeiro.html" class="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-900" >
+                        <i class="fas fa-money-bill-wave mr-2"></i> Pagamentos
+                    </a>
+
+                        <span class="inline-flex items-center px-3 py-2 border-b-2 border-marketing text-marketing font-medium">
+                            <i class="fas fa-bullhorn mr-2"></i> Campanhas
+                        </span>
+                </nav>
+                
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="relative">
+                        <input type="text" id="search-credential-input" placeholder="Buscar credencial..." class="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
+                        <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <button onclick="openCredentialFormModal()" class="bg-primary hover:bg-secondary transition flex items-center gap-2 text-white px-4 py-2 rounded-lg">
+                        <i class="fas fa-plus"></i>
+                        <span class="hidden sm:inline">Nova Credencial</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Resumo estatístico -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-primary">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Total de Credenciais</p>
+                        <h2 id="total-credentials" class="text-3xl font-bold text-gray-800">0</h2>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-key text-xl text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Redes Sociais</p>
+                        <h2 id="social-credentials" class="text-3xl font-bold text-gray-800">0</h2>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-hashtag text-xl text-purple-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Gerenciadores</p>
+                        <h2 id="manager-credentials" class="text-3xl font-bold text-gray-800">0</h2>
+                    </div>
+                    <div class="bg-yellow-100 p-3 rounded-full">
+                        <i class="fas fa-chart-line text-xl text-yellow-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Senhas Atualizadas</p>
+                        <h2 id="updated-passwords" class="text-3xl font-bold text-gray-800">0</h2>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-sync text-xl text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Credenciais -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onclick="sortCredentials('client')">
+                                <div class="flex items-center gap-1">
+                                    Cliente 
+                                    <i id="sort-client-icon" class="fas fa-sort text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onclick="sortCredentials('type')">
+                                <div class="flex items-center gap-1">
+                                    Tipo 
+                                    <i id="sort-type-icon" class="fas fa-sort text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Link / Acesso</th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuário</th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Senha</th>
+                            <th class="py-4 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="credential-table-body" class="divide-y divide-gray-200">
+                        <!-- As credenciais serão inseridas aqui via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Loading infinito e mensagem de sem resultados -->
+            <div id="loading-container" class="p-6 hidden">
+                <div class="flex justify-center items-center gap-3">
+                    <div class="animate-spin rounded-full h-6 w-6 border-t-2 border-l-2 border-primary"></div>
+                    <p class="text-gray-600">Carregando mais credenciais...</p>
+                </div>
+            </div>
+            
+            <div id="no-results" class="p-10 text-center hidden">
+                <div class="mb-4 text-gray-400">
+                    <i class="fas fa-key text-4xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhuma credencial encontrada</h3>
+                <p class="text-gray-500">Clique em "Nova Credencial" para começar a cadastrar</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Formulário para Credenciais -->
+    <div id="credential-form-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden transition-opacity opacity-0">
+        <div class="bg-white rounded-xl w-full max-w-2xl shadow-xl transition-transform transform">
+            <div class="border-b border-gray-200 px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-semibold text-gray-800" id="credential-form-modal-title">Nova Credencial</h2>
+                    <button onclick="closeCredentialFormModal()" class="text-gray-400 hover:text-gray-600 rounded-full h-8 w-8 flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="credential-form" class="p-6">
+                <input type="hidden" id="credential-id">
+                
+                <div class="grid grid-cols-1 gap-6 mb-6">
+                    <div>
+                        <label for="client-select" class="block mb-2 text-sm font-medium text-gray-700">Cliente *</label>
+                        <select id="client-select" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-primary focus:border-primary outline-none transition">
+                            <option value="">Selecione um cliente</option>
+                            <!-- Clientes serão carregados aqui via JavaScript -->
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="credential-type" class="block mb-2 text-sm font-medium text-gray-700">Tipo *</label>
+                        <select id="credential-type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-primary focus:border-primary outline-none transition">
+                            <option value="">Selecione o tipo</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="WhatsApp">WhatsApp</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Twitter">Twitter</option>
+                            <option value="Google">Google Ads</option>
+                            <option value="BM">Business Manager</option>
+                            <option value="TikTok">TikTok</option>
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="credential-link" class="block mb-2 text-sm font-medium text-gray-700">Link</label>
+                        <div class="relative">
+                            <input type="url" id="credential-link" placeholder="https://..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-primary focus:border-primary outline-none transition">
+                            <i class="fas fa-link absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="credential-user" class="block mb-2 text-sm font-medium text-gray-700">Usuário *</label>
+                        <div class="relative">
+                            <input type="text" id="credential-user" required placeholder="Nome de usuário ou e-mail" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-primary focus:border-primary outline-none transition">
+                            <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="credential-password" class="block mb-2 text-sm font-medium text-gray-700">Senha *</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="credential-password" required placeholder="••••••••" class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-primary focus:border-primary outline-none transition">
+                            <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <button type="button" id="password-toggle" class="password-toggle">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center mt-2">
+                            <input id="update-password" type="checkbox" class="h-4 w-4 text-primary rounded">
+                            <label for="update-password" class="ml-2 text-sm text-gray-600">Solicitar atualização na próxima revisão</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end gap-3">
+                    <button type="button" onclick="closeCredentialFormModal()" class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bg-primary hover:bg-secondary transition flex items-center gap-2 px-4 py-2 text-white rounded-lg">
+                        <i class="fas fa-save"></i>
+                        <span id="save-button-text">Salvar Credencial</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal de Confirmação de Exclusão para Credenciais -->
+    <div id="delete-credential-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity">
+        <div class="bg-white rounded-xl w-full max-w-md p-6">
+            <div class="text-center mb-5">
+                <div class="mx-auto bg-red-100 p-3 rounded-full w-16 h-16 flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-xl text-red-600"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 text-center mb-2">Excluir Credencial</h3>
+            <p class="text-gray-500 text-center mb-6">Tem certeza que deseja excluir permanentemente esta credencial?</p>
+            <p id="credential-to-delete" class="text-center font-medium mb-4 text-lg"></p>
+            <div class="flex justify-center gap-3">
+                <button onclick="closeDeleteCredentialModal()" class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition">
+                    Cancelar
+                </button>
+                <button id="confirm-credential-delete" class="bg-red-600 hover:bg-red-700 transition flex items-center gap-2 px-4 py-2 text-white rounded-lg">
+                    <i class="fas fa-trash"></i>
+                    <span>Sim, Excluir</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast de Confirmação -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-success text-white py-3 px-6 rounded-lg shadow-lg flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-300 z-50">
+        <i id="toast-icon" class="fas fa-check-circle"></i>
+        <span id="toast-message">Operação realizada com sucesso!</span>
+    </div>
+
+    <script>
+        // Inicialização de dados
+        const CREDENTIALS_KEY = 'credential_data';
+        const CREDENTIALS_PER_PAGE = 10;
+        const CLIENTS_KEY = 'client_data';
+        
+        // Variáveis globais
+        let credentials = [];
+        let clients = [];
+        let filteredCredentials = [];
+        let currentPage = 1;
+        let isLoading = false;
+        let currentCredentialToDelete = null;
+        let currentEditId = null;
+        let sortConfig = { key: null, direction: 'asc' };
+        let passwordVisible = false;
+
+        // Elementos DOM
+        const tableBody = document.getElementById('credential-table-body');
+        const loadingContainer = document.getElementById('loading-container');
+        const noResults = document.getElementById('no-results');
+        const totalCredentialsEl = document.getElementById('total-credentials');
+        const socialCredentialsEl = document.getElementById('social-credentials');
+        const managerCredentialsEl = document.getElementById('manager-credentials');
+        const updatedPasswordsEl = document.getElementById('updated-passwords');
+        const formModal = document.getElementById('credential-form-modal');
+        const deleteModal = document.getElementById('delete-credential-modal');
+        const confirmDeleteBtn = document.getElementById('confirm-credential-delete');
+        const credentialForm = document.getElementById('credential-form');
+        const credentialIdInput = document.getElementById('credential-id');
+        const credentialToDeleteEl = document.getElementById('credential-to-delete');
+        const searchInput = document.getElementById('search-credential-input');
+        const clientSelect = document.getElementById('client-select');
+        const toast = document.getElementById('toast');
+        const passwordToggle = document.getElementById('password-toggle');
+        const passwordInput = document.getElementById('credential-password');
+        
+        // Tipos de credencial e ícones
+        const credentialIcons = {
+            'Facebook': { icon: 'fab fa-facebook', class: 'credential-facebook' },
+            'WhatsApp': { icon: 'fab fa-whatsapp', class: 'credential-whatsapp' },
+            'Instagram': { icon: 'fab fa-instagram', class: 'credential-instagram' },
+            'Twitter': { icon: 'fab fa-twitter', class: 'credential-twitter' },
+            'Google': { icon: 'fab fa-google', class: 'credential-google' },
+            'BM': { icon: 'fas fa-chart-line', class: 'credential-bm' },
+            'TikTok': { icon: 'fab fa-tiktok', class: 'credential-default' },
+            'LinkedIn': { icon: 'fab fa-linkedin', class: 'credential-default' },
+            'Outro': { icon: 'fas fa-key', class: 'credential-default' }
+        };
+
+        // Função para obter ícone de credencial
+        function getCredentialIcon(type) {
+            return credentialIcons[type] || credentialIcons['Outro'];
+        }
+
+        // Alternar visibilidade da senha
+        function togglePasswordVisibility() {
+            passwordVisible = !passwordVisible;
+            passwordInput.type = passwordVisible ? 'text' : 'password';
+            passwordToggle.innerHTML = passwordVisible ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        function initApp() {
+            // Carregar clientes e credenciais do localStorage
+            loadClients();
+            loadCredentialsFromStorage();
+            updateCredentialStats();
+            renderCredentials();
+            
+            // Event Listeners
+            window.addEventListener('scroll', handleScroll);
+            credentialForm.addEventListener('submit', handleCredentialFormSubmit);
+            confirmDeleteBtn.addEventListener('click', handleCredentialDelete);
+            searchInput.addEventListener('input', handleSearch);
+            passwordToggle.addEventListener('click', togglePasswordVisibility);
+            
+            // Preencher dropdown de clientes
+            populateClientDropdown();
+        }
+
+        // Carrega credenciais do localStorage
+        function loadCredentialsFromStorage() {
+            const savedCredentials = localStorage.getItem(CREDENTIALS_KEY);
+            if (savedCredentials) {
+                try {
+                    credentials = JSON.parse(savedCredentials);
+                    filteredCredentials = [...credentials];
+                    console.log('Credenciais carregadas do localStorage:', credentials.length);
+                } catch (e) {
+                    console.error('Erro ao carregar credenciais:', e);
+                    credentials = [];
+                    filteredCredentials = [];
+                }
+            } else {
+                // Se não há dados, gerar dados de exemplo
+                console.log('Gerando credenciais de exemplo...');
+                credentials = generateSampleCredentials();
+                filteredCredentials = [...credentials];
+                saveCredentialsToStorage();
+            }
+        }
+
+        // Carrega clientes do localStorage
+        function loadClients() {
+            const savedClients = localStorage.getItem(CLIENTS_KEY);
+            if (savedClients) {
+                try {
+                    clients = JSON.parse(savedClients);
+                    console.log('Clientes carregados para o dropdown:', clients.length);
+                } catch (e) {
+                    console.error('Erro ao carregar clientes:', e);
+                    clients = [];
+                }
+            } else {
+                console.log('Não há clientes cadastrados');
+                clients = [];
+            }
+        }
+
+        // Gera credenciais de exemplo
+        function generateSampleCredentials() {
+            const types = ['Facebook', 'WhatsApp', 'Google', 'BM', 'Instagram', 'TikTok'];
+            const sampleCredentials = [];
+            
+            for (let i = 0; i < 25; i++) {
+                const client = clients[Math.floor(Math.random() * clients.length)];
+                const type = types[Math.floor(Math.random() * types.length)];
+                
+                sampleCredentials.push({
+                    id: 'credential_' + Date.now() + '_' + i,
+                    client_id: client.id,
+                    client_name: client.name,
+                    company: client.company,
+                    type: type,
+                    link: 'https://' + (type === 'BM' ? 'business.facebook.com' : type.toLowerCase() + '.com/' + client.name.replace(/\s/g, '')),
+                    user: 'user' + Math.floor(Math.random() * 100) + '@' + client.company.replace(/\s/g, '') + '.com',
+                    password: 'password' + Math.floor(Math.random() * 1000),
+                    requires_update: Math.random() > 0.7,
+                    created_at: new Date(),
+                    updated_at: new Date()
+                });
+            }
+            
+            return sampleCredentials;
+        }
+
+        // Salva dados no localStorage
+        function saveCredentialsToStorage() {
+            localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(credentials));
+            updateCredentialStats();
+        }
+
+        // Atualiza as estatísticas das credenciais
+        function updateCredentialStats() {
+            totalCredentialsEl.textContent = credentials.length;
+            
+            // Credenciais de redes sociais
+            const socialTypes = ['Facebook', 'Instagram', 'Twitter', 'TikTok', 'LinkedIn'];
+            const socialCount = credentials.filter(c => {
+                return socialTypes.includes(c.type);
+            }).length;
+            socialCredentialsEl.textContent = socialCount;
+            
+            // Credenciais de gerenciadores
+            const managerTypes = ['BM', 'Google', 'WhatsApp'];
+            const managerCount = credentials.filter(c => {
+                return managerTypes.includes(c.type);
+            }).length;
+            managerCredentialsEl.textContent = managerCount;
+            
+            // Senhas que requerem atualização
+            const updatedCount = credentials.filter(c => c.requires_update).length;
+            updatedPasswordsEl.textContent = updatedCount;
+        }
+
+        // Preencher dropdown de clientes
+        function populateClientDropdown() {
+            clientSelect.innerHTML = '';
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'Selecione um cliente';
+            clientSelect.appendChild(emptyOption);
+            
+            clients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = `${client.name} - ${client.company}`;
+                clientSelect.appendChild(option);
+            });
+        }
+
+        // Renderiza as credenciais na tabela
+        function renderCredentials() {
+            // Limpa a tabela
+            tableBody.innerHTML = '';
+            
+            if (filteredCredentials.length === 0) {
+                noResults.classList.remove('hidden');
+                loadingContainer.classList.add('hidden');
+                return;
+            }
+            
+            noResults.classList.add('hidden');
+            
+            // Ordena antes de renderizar, se necessário
+            let credentialsToRender = [...filteredCredentials];
+            if (sortConfig.key) {
+                credentialsToRender.sort((a, b) => {
+                    let valueA = a[sortConfig.key] || '';
+                    let valueB = b[sortConfig.key] || '';
+                    
+                    // Para ordenação por cliente, use cliente_name
+                    if (sortConfig.key === 'client') {
+                        valueA = a.client_name;
+                        valueB = b.client_name;
+                    }
+                    
+                    if (valueA < valueB) {
+                        return sortConfig.direction === 'asc' ? -1 : 1;
+                    }
+                    if (valueA > valueB) {
+                        return sortConfig.direction === 'asc' ? 1 : -1;
+                    }
+                    return 0;
+                });
+            }
+            
+            // Paginação simulada para carregamento infinito
+            const startIndex = 0;
+            const endIndex = Math.min(currentPage * CREDENTIALS_PER_PAGE, credentialsToRender.length);
+            const currentCredentials = credentialsToRender.slice(startIndex, endIndex);
+            
+            // Gera HTML para cada credencial
+            let html = '';
+            currentCredentials.forEach(credential => {
+                const iconInfo = getCredentialIcon(credential.type);
+                
+                html += `
+                <tr class="credential-row hover:bg-gray-50 transition">
+                    <td class="py-4 px-6 whitespace-nowrap">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center">
+                                <i class="fas fa-user text-gray-500"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">${credential.client_name}</p>
+                                <p class="text-sm text-gray-500">${credential.company}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 whitespace-nowrap">
+                        <div class="flex items-center gap-3">
+                            <div class="credential-icon ${iconInfo.class}">
+                                <i class="${iconInfo.icon}"></i>
+                            </div>
+                            <span class="font-medium">${credential.type}</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6">
+                        ${credential.link ? `<a href="${credential.link}" target="_blank" class="text-primary hover:underline">${credential.link}</a>` : '<span class="text-gray-500">Não informado</span>'}
+                    </td>
+                    <td class="py-4 px-6">
+                        <p class="text-gray-900">${credential.user}</p>
+                    </td>
+                    <td class="py-4 px-6">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono">••••••••</span>
+                            ${credential.requires_update ? `<span class="bg-warning text-white px-2 py-1 rounded text-xs">Atualizar</span>` : ''}
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        <div class="flex gap-2 justify-end">
+                            <button onclick="openCredentialEditModal('${credential.id}')" class="p-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="openDeleteCredentialModal('${credential.id}')" class="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+            
+            // Mostra loading se tiver mais itens
+            if (endIndex < credentialsToRender.length) {
+                loadingContainer.classList.remove('hidden');
+            } else {
+                loadingContainer.classList.add('hidden');
+            }
+        }
+
+        // Abre o modal do formulário para criação
+        function openCredentialFormModal() {
+            resetCredentialForm();
+            document.getElementById('credential-form-modal-title').textContent = 'Nova Credencial';
+            document.getElementById('save-button-text').textContent = 'Salvar Credencial';
+            formModal.classList.remove('hidden');
+            setTimeout(() => {
+                formModal.style.opacity = '1';
+            }, 10);
+        }
+
+        // Abre o modal do formulário para edição
+        function openCredentialEditModal(id) {
+            const credential = credentials.find(c => c.id === id);
+            if (!credential) return;
+            
+            currentEditId = id;
+            document.getElementById('credential-form-modal-title').textContent = 'Editar Credencial';
+            document.getElementById('save-button-text').textContent = 'Atualizar Credencial';
+            
+            credentialIdInput.value = credential.id;
+            document.getElementById('client-select').value = credential.client_id;
+            document.getElementById('credential-type').value = credential.type;
+            document.getElementById('credential-link').value = credential.link || '';
+            document.getElementById('credential-user').value = credential.user;
+            document.getElementById('credential-password').value = credential.password;
+            document.getElementById('update-password').checked = credential.requires_update;
+            
+            formModal.classList.remove('hidden');
+            setTimeout(() => {
+                formModal.style.opacity = '1';
+            }, 10);
+        }
+
+        // Fecha o modal do formulário
+        function closeCredentialFormModal() {
+            formModal.style.opacity = '0';
+            setTimeout(() => {
+                formModal.classList.add('hidden');
+                passwordVisible = false;
+                passwordInput.type = 'password';
+                passwordToggle.innerHTML = '<i class="fas fa-eye"></i>';
+            }, 300);
+        }
+
+        // Reseta o formulário
+        function resetCredentialForm() {
+            document.getElementById('credential-id').value = '';
+            document.getElementById('client-select').value = '';
+            document.getElementById('credential-type').value = '';
+            document.getElementById('credential-link').value = '';
+            document.getElementById('credential-user').value = '';
+            document.getElementById('credential-password').value = '';
+            document.getElementById('update-password').checked = false;
+            
+            currentEditId = null;
+        }
+
+        // Manipula o envio do formulário
+        function handleCredentialFormSubmit(e) {
+            e.preventDefault();
+            
+            const clientSelect = document.getElementById('client-select');
+            const typeSelect = document.getElementById('credential-type');
+            const link = document.getElementById('credential-link').value;
+            const user = document.getElementById('credential-user').value;
+            const password = document.getElementById('credential-password').value;
+            const requiresUpdate = document.getElementById('update-password').checked;
+            
+            // Validação básica
+            if (!clientSelect.value || !typeSelect.value || !user || !password) {
+                showToast('Preencha todos os campos obrigatórios!', 'danger');
+                return;
+            }
+            
+            // Encontra o cliente selecionado
+            const client = clients.find(c => c.id === clientSelect.value);
+            if (!client) {
+                showToast('Cliente não encontrado!', 'danger');
+                return;
+            }
+            
+            const credential = { 
+                client_id: clientSelect.value,
+                client_name: client.name,
+                company: client.company,
+                type: typeSelect.value,
+                link: link,
+                user: user,
+                password: password,
+                requires_update: requiresUpdate,
+                updated_at: new Date().toISOString()
+            };
+            
+            if (currentEditId) {
+                // Atualizar credencial existente
+                credential.id = currentEditId;
+                credential.created_at = credentials.find(c => c.id === currentEditId).created_at;
+                updateCredential(credential);
+                showToast('Credencial atualizada com sucesso!');
+            } else {
+                // Criar nova credencial
+                credential.id = generateCredentialId();
+                credential.created_at = new Date().toISOString();
+                createCredential(credential);
+                showToast('Credencial criada com sucesso!');
+            }
+            
+            closeCredentialFormModal();
+        }
+
+        // Gera ID único para credenciais
+        function generateCredentialId() {
+            return 'cred_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+        }
+
+        // Cria uma nova credencial
+        function createCredential(credential) {
+            credentials.unshift(credential);
+            filteredCredentials.unshift(credential);
+            saveCredentialsToStorage();
+            resetCredentialsView();
+        }
+
+        // Atualiza uma credencial existente
+        function updateCredential(updatedCredential) {
+            const index = credentials.findIndex(c => c.id === updatedCredential.id);
+            if (index === -1) return;
+            
+            credentials[index] = updatedCredential;
+            
+            // Atualiza também no filteredCredentials
+            const filteredIndex = filteredCredentials.findIndex(c => c.id === updatedCredential.id);
+            if (filteredIndex !== -1) {
+                filteredCredentials[filteredIndex] = updatedCredential;
+            }
+            
+            saveCredentialsToStorage();
+            resetCredentialsView();
+        }
+
+        // Abre o modal de confirmação de exclusão
+        function openDeleteCredentialModal(id) {
+            const credential = credentials.find(c => c.id === id);
+            if (!credential) return;
+            
+            currentCredentialToDelete = id;
+            credentialToDeleteEl.textContent = `${credential.type} de ${credential.client_name}`;
+            deleteModal.classList.remove('hidden');
+            setTimeout(() => {
+                deleteModal.style.opacity = '1';
+            }, 10);
+        }
+
+        // Fecha o modal de confirmação de exclusão
+        function closeDeleteCredentialModal() {
+            deleteModal.style.opacity = '0';
+            setTimeout(() => {
+                deleteModal.classList.add('hidden');
+                currentCredentialToDelete = null;
+            }, 300);
+        }
+
+        // Exclui uma credencial
+        function handleCredentialDelete() {
+            if (!currentCredentialToDelete) return;
+            
+            credentials = credentials.filter(c => c.id !== currentCredentialToDelete);
+            filteredCredentials = filteredCredentials.filter(c => c.id !== currentCredentialToDelete);
+            saveCredentialsToStorage();
+            resetCredentialsView();
+            
+            showToast('Credencial excluída com sucesso!', 'danger');
+            closeDeleteCredentialModal();
+        }
+
+        // Atualiza a visualização das credenciais
+        function resetCredentialsView() {
+            currentPage = 1;
+            renderCredentials();
+        }
+
+        // Ordenação de credenciais
+        function sortCredentials(key) {
+            if (sortConfig.key === key) {
+                sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortConfig.key = key;
+                sortConfig.direction = 'asc';
+            }
+            
+            // Atualiza ícones
+            document.querySelectorAll('[id^="sort-"]').forEach(icon => {
+                icon.className = 'fas fa-sort text-gray-400';
+            });
+            
+            const icon = document.getElementById(`sort-${key}-icon`);
+            if (icon) {
+                icon.className = sortConfig.direction === 'asc' ? 
+                    'fas fa-sort-up text-primary' : 
+                    'fas fa-sort-down text-primary';
+            }
+            
+            renderCredentials();
+        }
+
+        // Manipula busca de credenciais
+        function handleSearch() {
+            const term = searchInput.value.toLowerCase().trim();
+            
+            if (!term) {
+                filteredCredentials = [...credentials];
+                resetCredentialsView();
+                return;
+            }
+            
+            // Filtra considerando várias propriedades
+            filteredCredentials = credentials.filter(cred => {
+                return (
+                    cred.client_name.toLowerCase().includes(term) ||
+                    cred.company.toLowerCase().includes(term) ||
+                    cred.type.toLowerCase().includes(term) ||
+                    (cred.link && cred.link.toLowerCase().includes(term)) ||
+                    cred.user.toLowerCase().includes(term)
+                );
+            });
+            
+            resetCredentialsView();
+        }
+
+        // Manipula o scroll para carregar mais credenciais
+        function handleScroll() {
+            if (isLoading) return;
+            
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            const scrollPosition = scrollTop + clientHeight;
+            
+            if (scrollPosition >= scrollHeight - 100 && 
+                (currentPage * CREDENTIALS_PER_PAGE) < filteredCredentials.length) {
+                loadMoreCredentials();
+            }
+        }
+
+        // Carrega mais credenciais
+        function loadMoreCredentials() {
+            isLoading = true;
+            loadingContainer.classList.remove('hidden');
+            
+            // Simula tempo de carregamento
+            setTimeout(() => {
+                currentPage++;
+                renderCredentials();
+                isLoading = false;
+            }, 800);
+        }
+
+        // Mostra toast de confirmação
+        function showToast(message, type = 'success') {
+            const toastIcon = document.getElementById('toast-icon');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.className = `fixed bottom-6 right-6 text-white py-3 px-6 rounded-lg shadow-lg flex items-center gap-3 z-50`;
+            
+            if (type === 'success') {
+                toast.classList.add('bg-success');
+                toastIcon.className = 'fas fa-check-circle';
+            } else {
+                toast.classList.add('bg-danger');
+                toastIcon.className = 'fas fa-exclamation-circle';
+            }
+            
+            toast.classList.remove('opacity-0');
+            toast.classList.remove('translate-y-10');
+            toast.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                toast.classList.add('translate-y-10');
+            }, 3000);
+        }
+
+        // Renderiza as credenciais ao carregar
+        renderCredentials();
+    </script>
+</body>
+</html>

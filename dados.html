@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataControl | Sistema de Gerenciamento de Dados</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+        <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/favicon.png">
+
+    <!-- Open Graph (Facebook, LinkedIn, etc) -->
+    <meta property="og:title" content="DataControl – Gerencie Dados com Eficiência">
+    <meta property="og:description" content="Solução completa para visualizar, exportar e importar dados do LocalStorage com simplicidade e segurança.">
+    <meta property="og:url" content="https://betinribeiro.github.io/datacontrol/">
+    <meta property="og:image" content="https://betinribeiro.github.io/datacontrol/assets/preview.png">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="DataControl – Gerencie Dados com Eficiência">
+    <meta name="twitter:description" content="Solução completa para visualizar, exportar e importar dados do LocalStorage com simplicidade e segurança.">
+    <meta name="twitter:image" content="https://betinribeiro.github.io/datacontrol/assets/preview.png">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#2563eb',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        dark: '#1e293b',
+                        light: '#f8fafc'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .json-view {
+            font-family: 'Fira Code', monospace;
+            background: #011627;
+            color: #d6deeb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        
+        .json-key { color: #7fdbca; }
+        .json-string { color: #ecc48d; }
+        .json-number { color: #f78c6c; }
+        .json-boolean { color: #ff5874; }
+        .json-null { color: #5e6d8a; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Cabeçalho -->
+        <header class="mb-10">
+            <div class="flex flex-col md:flex-row justify-between items-start gap-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-dark flex items-center gap-3">
+                        <i class="fas fa-database text-primary"></i>
+                     <a href="index.html" >
+                        Sistema de Gerenciamento de Dados
+                        </a>
+                    </h1>
+                    <p class="text-gray-600">Visualize, exporte e importe dados do LocalStorage</p>
+                </div>
+                
+                <div class="flex flex-wrap gap-3 w-full md:w-auto">
+
+                        <nav class="flex gap-4 mb-4 border-b border-gray-200">
+                    <a href="cliente.html" class="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-900">
+                        <i class="fas fa-user-tie mr-2"></i> Clientes
+                    </a>
+
+                </nav>
+                    <button onclick="exportAllData()" class="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-download"></i>
+                        Exportar Tudo
+                    </button>
+                    <button onclick="document.getElementById('import-file').click()" class="bg-success hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-upload"></i>
+                        Importar Dados
+                    </button>
+                    <input type="file" id="import-file" accept=".txt" class="hidden" onchange="handleFileImport(event)">
+                    <!-- <button onclick="resetDemoData()" class="bg-warning hover:bg-yellow-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-sync-alt"></i>
+                        Reset Dados Demo
+                    </button> -->
+                </div>
+            </div>
+        </header>
+        
+        <!-- Indicadores -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
+            <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-primary">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-600 font-medium">Clientes</p>
+                        <h2 id="client-count" class="text-2xl font-bold text-gray-800">0</h2>
+                    </div>
+                    <div class="bg-blue-100 p-2 rounded-lg">
+                        <i class="fas fa-users text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-purple-500">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-600 font-medium">Credenciais</p>
+                        <h2 id="credential-count" class="text-2xl font-bold text-gray-800">0</h2>
+                    </div>
+                    <div class="bg-purple-100 p-2 rounded-lg">
+                        <i class="fas fa-key text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-yellow-500">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-600 font-medium">Pagamentos</p>
+                        <h2 id="payment-count" class="text-2xl font-bold text-gray-800">0</h2>
+                    </div>
+                    <div class="bg-yellow-100 p-2 rounded-lg">
+                        <i class="fas fa-money-bill-wave text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-green-500">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-600 font-medium">Campanhas</p>
+                        <h2 id="campaign-count" class="text-2xl font-bold text-gray-800">0</h2>
+                    </div>
+                    <div class="bg-green-100 p-2 rounded-lg">
+                        <i class="fas fa-bullhorn text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navegação por abas -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+            <nav class="flex overflow-x-auto">
+                <button data-tab="clients" class="tab-btn py-4 px-6 font-medium border-b-2 border-transparent hover:bg-gray-50 transition-all duration-300 flex-shrink-0">Clientes</button>
+                <button data-tab="credentials" class="tab-btn py-4 px-6 font-medium border-b-2 border-transparent hover:bg-gray-50 transition-all duration-300 flex-shrink-0">Credenciais</button>
+                <button data-tab="payments" class="tab-btn py-4 px-6 font-medium border-b-2 border-transparent hover:bg-gray-50 transition-all duration-300 flex-shrink-0">Pagamentos</button>
+                <button data-tab="campaigns" class="tab-btn py-4 px-6 font-medium border-b-2 border-transparent hover:bg-gray-50 transition-all duration-300 flex-shrink-0">Campanhas</button>
+                <button data-tab="all-data" class="tab-btn py-4 px-6 font-medium border-b-2 border-transparent hover:bg-gray-50 transition-all duration-300 flex-shrink-0">Todos os Dados</button>
+            </nav>
+        </div>
+        
+        <!-- Conteúdo das abas -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <!-- Aba Clientes -->
+            <div id="clients" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-dark">Dados de Clientes</h2>
+                    <button onclick="exportData('client_data')" class="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-download"></i> Exportar Clientes
+                    </button>
+                </div>
+                <div id="client-data-view" class="json-view"></div>
+            </div>
+            
+            <!-- Aba Credenciais -->
+            <div id="credentials" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-dark">Dados de Credenciais</h2>
+                    <button onclick="exportData('credential_data')" class="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-download"></i> Exportar Credenciais
+                    </button>
+                </div>
+                <div id="credential-data-view" class="json-view"></div>
+            </div>
+            
+            <!-- Aba Pagamentos -->
+            <div id="payments" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-dark">Dados de Pagamentos</h2>
+                    <button onclick="exportData('payment_data')" class="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-download"></i> Exportar Pagamentos
+                    </button>
+                </div>
+                <div id="payment-data-view" class="json-view"></div>
+            </div>
+            
+            <!-- Aba Campanhas -->
+            <div id="campaigns" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-dark">Dados de Campanhas</h2>
+                    <button onclick="exportData('campaign_data')" class="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-download"></i> Exportar Campanhas
+                    </button>
+                </div>
+                <div id="campaign-data-view" class="json-view"></div>
+            </div>
+            
+            <!-- Aba Todos os Dados -->
+            <div id="all-data" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-dark">Todos os Dados do Sistema</h2>
+                    <button onclick="exportAllData()" class="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-download"></i> Exportar Tudo
+                    </button>
+                </div>
+                <div id="all-data-view" class="json-view"></div>
+            </div>
+        </div>
+        
+        <!-- Área de Importação -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-2xl font-bold text-dark mb-6">Importar Dados</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <div class="bg-gray-50 rounded-lg p-6 border-2 border-dashed border-gray-300">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-file-upload text-4xl text-gray-400 mb-3"></i>
+                            <p class="font-medium text-gray-700">Importar dados do sistema</p>
+                            <p class="text-sm text-gray-500 mt-1">Selecione um arquivo .txt com dados em formato JSON</p>
+                        </div>
+                        <div class="mt-6">
+                            <label for="import-data-select" class="block mb-2 font-medium text-gray-700">Importar para:</label>
+                            <select id="import-data-select" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                <option value="all">Todos os Dados (Completo)</option>
+                                <option value="clients">Clientes</option>
+                                <option value="credentials">Credenciais</option>
+                                <option value="payments">Pagamentos</option>
+                                <option value="campaigns">Campanhas</option>
+                            </select>
+                        </div>
+                        <div class="mt-6">
+                            <button onclick="document.getElementById('import-file').click()" class="w-full bg-gray-100 hover:bg-gray-200 py-3 rounded-lg font-medium flex items-center justify-center gap-2">
+                                <i class="fas fa-file-import"></i> Selecionar Arquivo
+                            </button>
+                            <p id="import-status" class="text-sm mt-3 text-center text-gray-600"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="font-medium text-gray-700 mb-3">Instruções para Importação</h3>
+                        <ol class="list-decimal list-inside space-y-2 text-gray-600">
+                            <li class="pl-1">Selecione a categoria para a qual deseja importar</li>
+                            <li class="pl-1">Clique no botão "Selecionar Arquivo"</li>
+                            <li class="pl-1">Escolha um arquivo .txt com dados em formato JSON</li>
+                            <li class="pl-1">Os dados serão validados e importados para o sistema</li>
+                        </ol>
+                        
+                        <div class="mt-6">
+                            <h3 class="font-medium text-gray-700 mb-3">Formato Esperado</h3>
+                            <div class="bg-gray-200 p-4 rounded-lg text-sm font-mono">
+                                <pre>// Para um único tipo de dados
+[
+  {
+    "id": "cliente_123",
+    "name": "João Silva",
+    "email": "joao@exemplo.com",
+    ...
+  },
+  ...
+]
+
+// Para todos os dados
+{
+  "client_data": [...],
+  "credential_data": [...],
+  "payment_data": [...],
+  "campaign_data": [...]
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Script principal -->
+    <script>
+        // Event listeners para as abas
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remover classe ativa de todos os botões
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('border-b-2', 'border-primary');
+                });
+                
+                // Adicionar classe ativa ao botão clicado
+                button.classList.add('border-b-2', 'border-primary');
+                
+                // Ativar conteúdo correspondente
+                const tabId = button.getAttribute('data-tab');
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(tabId).classList.add('active');
+                
+                // Atualizar visualização dos dados se necessário
+                if (tabId === 'all-data') {
+                    showAllData();
+                }
+            });
+        });
+        
+        // Ativar a primeira aba por padrão
+        document.querySelector('[data-tab="clients"]').click();
+        
+        // Carregar e exibir os dados
+        function loadAndDisplayData() {
+            loadDataCounts();
+            displayClientData();
+            displayCredentialData();
+            displayPaymentData();
+            displayCampaignData();
+        }
+        
+        // Exibir contagens de dados
+        function loadDataCounts() {
+            // Dados de clientes
+            const clientData = localStorage.getItem('client_data');
+            const clients = clientData ? JSON.parse(clientData) : [];
+            document.getElementById('client-count').textContent = clients.length;
+            
+            // Dados de credenciais
+            const credentialData = localStorage.getItem('credential_data');
+            const credentials = credentialData ? JSON.parse(credentialData) : [];
+            document.getElementById('credential-count').textContent = credentials.length;
+            
+            // Dados de pagamentos
+            const paymentData = localStorage.getItem('payment_data');
+            const payments = paymentData ? JSON.parse(paymentData) : [];
+            document.getElementById('payment-count').textContent = payments.length;
+            
+            // Dados de campanhas
+            const campaignData = localStorage.getItem('campaign_data');
+            const campaigns = campaignData ? JSON.parse(campaignData) : [];
+            document.getElementById('campaign-count').textContent = campaigns.length;
+        }
+        
+        // Exibir dados de clientes formatados
+        function displayClientData() {
+            const clientData = localStorage.getItem('client_data');
+            if (!clientData) {
+                document.getElementById('client-data-view').innerHTML = '<p class="text-gray-400 py-4 text-center">Nenhum dado de cliente encontrado.</p>';
+                return;
+            }
+            
+            const clients = JSON.parse(clientData);
+            document.getElementById('client-data-view').innerHTML = syntaxHighlight(JSON.stringify(clients, null, 2));
+        }
+        
+        // Exibir dados de credenciais formatados
+        function displayCredentialData() {
+            const credentialData = localStorage.getItem('credential_data');
+            if (!credentialData) {
+                document.getElementById('credential-data-view').innerHTML = '<p class="text-gray-400 py-4 text-center">Nenhum dado de credenciais encontrado.</p>';
+                return;
+            }
+            
+            const credentials = JSON.parse(credentialData);
+            document.getElementById('credential-data-view').innerHTML = syntaxHighlight(JSON.stringify(credentials, null, 2));
+        }
+        
+        // Exibir dados de pagamentos formatados
+        function displayPaymentData() {
+            const paymentData = localStorage.getItem('payment_data');
+            if (!paymentData) {
+                document.getElementById('payment-data-view').innerHTML = '<p class="text-gray-400 py-4 text-center">Nenhum dado de pagamentos encontrado.</p>';
+                return;
+            }
+            
+            const payments = JSON.parse(paymentData);
+            document.getElementById('payment-data-view').innerHTML = syntaxHighlight(JSON.stringify(payments, null, 2));
+        }
+        
+        // Exibir dados de campanhas formatados
+        function displayCampaignData() {
+            const campaignData = localStorage.getItem('campaign_data');
+            if (!campaignData) {
+                document.getElementById('campaign-data-view').innerHTML = '<p class="text-gray-400 py-4 text-center">Nenhum dado de campanhas encontrado.</p>';
+                return;
+            }
+            
+            const campaigns = JSON.parse(campaignData);
+            document.getElementById('campaign-data-view').innerHTML = syntaxHighlight(JSON.stringify(campaigns, null, 2));
+        }
+        
+        // Exibir todos os dados
+        function showAllData() {
+            const allData = {
+                client_data: localStorage.getItem('client_data') ? JSON.parse(localStorage.getItem('client_data')) : [],
+                credential_data: localStorage.getItem('credential_data') ? JSON.parse(localStorage.getItem('credential_data')) : [],
+                payment_data: localStorage.getItem('payment_data') ? JSON.parse(localStorage.getItem('payment_data')) : [],
+                campaign_data: localStorage.getItem('campaign_data') ? JSON.parse(localStorage.getItem('campaign_data')) : []
+            };
+            
+            document.getElementById('all-data-view').innerHTML = syntaxHighlight(JSON.stringify(allData, null, 2));
+        }
+        
+        // Destacar sintaxe JSON
+        function syntaxHighlight(json) {
+            if (!json) return '';
+            
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                let cls = 'json-number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'json-key';
+                    } else {
+                        cls = 'json-string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+        
+        // Exportar dados específicos
+        function exportData(storageKey) {
+            const data = localStorage.getItem(storageKey);
+            if (!data) {
+                alert('Nenhum dado encontrado para exportar.');
+                return;
+            }
+            
+            const filename = getExportFilename(storageKey);
+            downloadFile(data, filename);
+        }
+        
+        // Exportar todos os dados
+        function exportAllData() {
+            const allData = {
+                client_data: localStorage.getItem('client_data') ? JSON.parse(localStorage.getItem('client_data')) : [],
+                credential_data: localStorage.getItem('credential_data') ? JSON.parse(localStorage.getItem('credential_data')) : [],
+                payment_data: localStorage.getItem('payment_data') ? JSON.parse(localStorage.getItem('payment_data')) : [],
+                campaign_data: localStorage.getItem('campaign_data') ? JSON.parse(localStorage.getItem('campaign_data')) : []
+            };
+            
+            const dataStr = JSON.stringify(allData, null, 2);
+            downloadFile(dataStr, 'dados_completos.txt');
+        }
+        
+        // Gerar nome de arquivo apropriado
+        function getExportFilename(key) {
+            switch(key) {
+                case 'client_data': return 'clientes.txt';
+                case 'credential_data': return 'credenciais.txt';
+                case 'payment_data': return 'pagamentos.txt';
+                case 'campaign_data': return 'campanhas.txt';
+                default: return 'dados.txt';
+            }
+        }
+        
+        // Criar arquivo para download
+        function downloadFile(data, filename) {
+            const blob = new Blob([data], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Limpeza
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        }
+        
+        // Manipular importação de arquivos
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = e.target.result;
+                    const json = JSON.parse(data);
+                    const category = document.getElementById('import-data-select').value;
+                    
+                    importData(json, category);
+                } catch (error) {
+                    document.getElementById('import-status').innerHTML = `<span class="text-red-600">Erro: ${error.message}</span>`;
+                }
+            };
+            
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+        
+        // Importar dados para o localStorage
+        function importData(data, category) {
+            try {
+                if (category === 'all') {
+                    // Importar dados completos
+                    if (data.client_data) localStorage.setItem('client_data', JSON.stringify(data.client_data));
+                    if (data.credential_data) localStorage.setItem('credential_data', JSON.stringify(data.credential_data));
+                    if (data.payment_data) localStorage.setItem('payment_data', JSON.stringify(data.payment_data));
+                    if (data.campaign_data) localStorage.setItem('campaign_data', JSON.stringify(data.campaign_data));
+                    
+                    document.getElementById('import-status').innerHTML = '<span class="text-green-600">Todos os dados foram importados com sucesso!</span>';
+                } else {
+                    // Importar categoria específica
+                    let storageKey = '';
+                    switch(category) {
+                        case 'clients': storageKey = 'client_data'; break;
+                        case 'credentials': storageKey = 'credential_data'; break;
+                        case 'payments': storageKey = 'payment_data'; break;
+                        case 'campaigns': storageKey = 'campaign_data'; break;
+                    }
+                    
+                    if (Array.isArray(data)) {
+                        localStorage.setItem(storageKey, JSON.stringify(data));
+                        document.getElementById('import-status').innerHTML = `<span class="text-green-600">Dados de ${storageKey.replace('_data', '')} importados com sucesso!</span>`;
+                    } else {
+                        throw new Error('Formato de dados inválido para esta categoria. Esperado array.');
+                    }
+                }
+                
+                // Atualizar a UI com os novos dados
+                loadAndDisplayData();
+                
+                // Mensagem de confirmação
+                setTimeout(() => {
+                    document.getElementById('import-status').innerHTML = '';
+                }, 3000);
+            } catch (error) {
+                document.getElementById('import-status').innerHTML = `<span class="text-red-600">Erro na importação: ${error.message}</span>`;
+            }
+        }
+        
+        // Gerar dados demo
+        function generateDemoData() {
+            // Dados de clientes demo
+            const demoClients = [
+                {
+                    id: 'cliente_1',
+                    name: 'João Silva',
+                    email: 'joao@exemplo.com',
+                    phone: '(11) 9999-8888',
+                    company: 'Acme Corp',
+                    created_at: '2023-01-15T10:30:00Z'
+                },
+                {
+                    id: 'cliente_2',
+                    name: 'Maria Oliveira',
+                    email: 'maria@exemplo.com',
+                    phone: '(21) 7777-5555',
+                    company: 'XYZ Inc',
+                    created_at: '2023-02-20T14:45:00Z'
+                }
+            ];
+            
+            // Dados de credenciais demo
+            const demoCredentials = [
+                {
+                    id: 'cred_1',
+                    client_id: 'cliente_1',
+                    platform: 'Google Ads',
+                    token: 'token_google_123',
+                    status: 'ativo',
+                    created_at: '2023-01-16T09:15:00Z'
+                },
+                {
+                    id: 'cred_2',
+                    client_id: 'cliente_2',
+                    platform: 'Facebook Ads',
+                    token: 'token_fb_456',
+                    status: 'ativo',
+                    created_at: '2023-02-21T11:30:00Z'
+                }
+            ];
+            
+            // Dados de pagamentos demo
+            const demoPayments = [
+                {
+                    id: 'pagamento_1',
+                    client_id: 'cliente_1',
+                    amount: 1500.00,
+                    date: '2023-01-20',
+                    method: 'Cartão de Crédito',
+                    status: 'aprovado'
+                },
+                {
+                    id: 'pagamento_2',
+                    client_id: 'cliente_2',
+                    amount: 2300.00,
+                    date: '2023-02-25',
+                    method: 'Transferência',
+                    status: 'pendente'
+                }
+            ];
+            
+            // Dados de campanhas demo
+            const demoCampaigns = [
+                {
+                    id: 'campanha_1',
+                    client_id: 'cliente_1',
+                    name: 'Campanha Verão 2023',
+                    budget: 5000.00,
+                    objective: 'Gerar leads para promoção de verão',
+                    status: 'ativa',
+                    start_date: '2023-03-01',
+                    end_date: '2023-04-30'
+                },
+                {
+                    id: 'campanha_2',
+                    client_id: 'cliente_2',
+                    name: 'Lançamento Produto X',
+                    budget: 7500.00,
+                    objective: 'Promover lançamento do novo produto',
+                    status: 'planejamento',
+                    start_date: '2023-04-15',
+                    end_date: '2023-06-15'
+                }
+            ];
+            
+            // Salvar dados demo no localStorage
+            localStorage.setItem('client_data', JSON.stringify(demoClients));
+            localStorage.setItem('credential_data', JSON.stringify(demoCredentials));
+            localStorage.setItem('payment_data', JSON.stringify(demoPayments));
+            localStorage.setItem('campaign_data', JSON.stringify(demoCampaigns));
+            
+            alert('Dados demo carregados com sucesso!');
+            loadAndDisplayData();
+        }
+        
+        // Resetar para dados demo
+        function resetDemoData() {
+            if (confirm('Deseja realmente substituir os dados atuais pelos dados demo?')) {
+                generateDemoData();
+            }
+        }
+        
+        // Iniciar o sistema
+        function initSystem() {
+            // Verificar se já existem dados
+            const hasData = localStorage.getItem('client_data') !== null;
+            
+            // Se não houver dados, carregar demo
+            if (!hasData) {
+                generateDemoData();
+            } else {
+                loadAndDisplayData();
+            }
+        }
+        
+        // Inicializar o sistema quando a página carregar
+        window.addEventListener('DOMContentLoaded', initSystem);
+    </script>
+</body>
+</html>

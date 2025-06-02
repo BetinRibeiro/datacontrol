@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataControl | Sistema de Gerenciamento de Dados</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+        <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/favicon.png">
+
+    <!-- Open Graph (Facebook, LinkedIn, etc) -->
+    <meta property="og:title" content="DataControl – Gerencie Dados com Eficiência">
+    <meta property="og:description" content="Solução completa para visualizar, exportar e importar dados do LocalStorage com simplicidade e segurança.">
+    <meta property="og:url" content="https://betinribeiro.github.io/datacontrol/">
+    <meta property="og:image" content="https://betinribeiro.github.io/datacontrol/assets/preview.png">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="DataControl – Gerencie Dados com Eficiência">
+    <meta name="twitter:description" content="Solução completa para visualizar, exportar e importar dados do LocalStorage com simplicidade e segurança.">
+    <meta name="twitter:image" content="https://betinribeiro.github.io/datacontrol/assets/preview.png">
+
+
+    <style type="text/css">
+        @media print {
+            .btn {
+                display: none;
+            }
+
+            #noprint {
+                display: none;
+            }
+        }
+        
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        secondary: '#3f37c9',
+                        dark: '#1d3557',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        light: '#f8f9fa',
+                        marketing: '#8b5cf6'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-ativa {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .status-pausada {
+            background-color: #fffbeb;
+            color: #92400e;
+        }
+        .status-encerrada {
+            background-color: #ede9fe;
+            color: #5b21b6;
+        }
+        .status-cancelada {
+            background-color: '#fee2e2';
+            color: '#b91c1c';
+        }
+        .status-agendada {
+            background-color: '#dbeafe';
+            color: '#1d4ed8';
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Cabeçalho -->
+        <header class="flex flex-col sm:flex-row justify-between items-start gap-6 mb-10">
+            <div>
+                <h1 class="text-3xl font-bold text-dark flex items-center gap-2">
+                    <i class="fas fa-bullhorn text-marketing"></i>
+                     <a href="index.html" >
+                    Gestão de Campanhas
+                    </a>
+                </h1>
+                <p class="text-gray-600">Estrategias de marketing e publicidade dos clientes</p>
+            </div>
+            
+            <div class="flex flex-col items-end w-full sm:w-auto">
+                        <nav class="flex gap-4 mb-4 border-b border-gray-200">
+                    <a href="cliente.html" class="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-900">
+                        <i class="fas fa-user-tie mr-2"></i> Clientes
+                    </a>
+                    <a href="credencial.html" class="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-900" >
+                        <i class="fas fa-key mr-2"></i> Credenciais
+                    </a>
+                    <a href="dados.html" class="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-900" >
+                        <i class="fas fa-list mr-2"></i> Dados
+                    </a>
+
+                    <span class="inline-flex items-center px-3 py-2 border-b-2 border-primary text-primary font-medium">
+                            <i class="fas fa-bullhorn mr-2"></i> Campanhas
+                    </span>
+
+
+                </nav>
+                
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="relative">
+                        <input type="text" id="search-campaign-input" placeholder="Buscar campanha..." class="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-marketing focus:border-marketing outline-none transition">
+                        <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <button onclick="openCampaignFormModal()" class="bg-marketing hover:bg-purple-700 transition flex items-center gap-2 text-white px-4 py-2 rounded-lg">
+                        <i class="fas fa-plus"></i>
+                        <span class="hidden sm:inline">Nova Campanha</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Resumo estatístico campanhas -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-marketing">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Campanhas Ativas</p>
+                        <h2 id="active-campaigns" class="text-3xl font-bold text-gray-800">0</h2>
+                        <p class="text-sm text-marketing mt-1">em execução</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-chart-line text-xl text-marketing"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Orçamento Total</p>
+                        <h2 id="total-budget" class="text-3xl font-bold text-gray-800">R$ 0,00</h2>
+                        <p class="text-sm text-blue-500 mt-1">em campanhas</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-coins text-xl text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">ROI Médio</p>
+                        <h2 id="avg-roi" class="text-3xl font-bold text-gray-800">0%</h2>
+                        <p class="text-sm text-green-500 mt-1">Retorno sobre investimento</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-hand-holding-usd text-xl text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Conversão Média</p>
+                        <h2 id="conv-rate" class="text-3xl font-bold text-gray-800">0%</h2>
+                        <p class="text-sm text-yellow-500 mt-1">Taxa de sucesso</p>
+                    </div>
+                    <div class="bg-yellow-100 p-3 rounded-full">
+                        <i class="fas fa-percentage text-xl text-yellow-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Campanhas -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-10">
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onclick="sortCampaigns('client')">
+                                <div class="flex items-center gap-1">
+                                    Cliente 
+                                    <i id="sort-client-icon" class="fas fa-sort text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campanha</th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onclick="sortCampaigns('date')">
+                                <div class="flex items-center gap-1">
+                                    Período 
+                                    <i id="sort-date-icon" class="fas fa-sort text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orçamento</th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KPIs</th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="py-4 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="campaign-table-body" class="divide-y divide-gray-200">
+                        <!-- Mostrar estado vazio até os dados serem carregados -->
+                        <tr>
+                            <td colspan="7" class="py-8 text-center">
+                                <div class="flex flex-col items-center justify-center">
+                                    <div class="bg-gray-100 rounded-full p-4 mb-4">
+                                        <i class="fas fa-bullhorn text-2xl text-gray-400"></i>
+                                    </div>
+                                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhuma campanha registrada</h3>
+                                    <p class="text-gray-500 max-w-md mx-auto mb-4">
+                                        Comece criando uma nova campanha para seu cliente
+                                    </p>
+                                    <button onclick="openCampaignFormModal()" class="bg-marketing hover:bg-purple-700 transition flex items-center gap-2 text-white px-4 py-2 rounded-lg">
+                                        <i class="fas fa-plus"></i>
+                                        <span>Nova Campanha</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="campaign-loading-container" class="p-6 hidden">
+                <div class="flex justify-center items-center gap-3">
+                    <div class="animate-spin rounded-full h-6 w-6 border-t-2 border-l-2 border-marketing"></div>
+                    <p class="text-gray-600">Carregando mais campanhas...</p>
+                </div>
+            </div>
+            
+            <div id="campaign-no-results" class="p-10 text-center hidden">
+                <div class="mb-4 text-gray-400">
+                    <i class="fas fa-bullhorn text-4xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhuma campanha encontrada</h3>
+                <p class="text-gray-500">Verifique os filtros ou clique em "Nova Campanha" para cadastrar</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Relatório Completo -->
+    <div id="campaign-report-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity">
+        <div class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div class="border-b border-gray-200 px-6 py-4 sticky top-0 bg-white z-10">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-semibold text-gray-800">Relatório Completo</h2>
+                   
+                    <button onclick="closeReportModal()" id="noprint" class="text-gray-400 hover:text-gray-600 rounded-full h-8 w-8 flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="report-content" class="p-6 space-y-6">
+                <!-- Conteúdo será gerado aqui -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Formulário para Campanhas -->
+    <div id="campaign-form-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden transition-opacity opacity-0">
+        <div class="bg-white rounded-xl w-full max-w-3xl shadow-xl transition-transform transform max-h-[90vh] overflow-y-auto">
+            <div class="border-b border-gray-200 px-6 py-4 sticky top-0 bg-white z-10">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-semibold text-gray-800" id="campaign-form-modal-title">Nova Campanha</h2>
+                    <button onclick="closeCampaignFormModal()" class="text-gray-400 hover:text-gray-600 rounded-full h-8 w-8 flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="campaign-form" class="p-6">
+                <input type="hidden" id="campaign-id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="md:col-span-2">
+                        <label for="campaign-name" class="block mb-2 text-sm font-medium text-gray-700">Nome da Campanha *</label>
+                        <input type="text" id="campaign-name" required placeholder="Nome interno para identificação" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition">
+                    </div>
+                    
+                    <div>
+                        <label for="campaign-client-select" class="block mb-2 text-sm font-medium text-gray-700">Cliente *</label>
+                        <select id="campaign-client-select" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition">
+                            <option value="">Selecione um cliente</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="campaign-objective" class="block mb-2 text-sm font-medium text-gray-700">Objetivo Principal *</label>
+                        <select id="campaign-objective" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition">
+                            <option value="">Selecione o objetivo</option>
+                            <option value="brand">Aumentar Brand Awareness</option>
+                            <option value="leads">Gerar Novos Leads</option>
+                            <option value="sales">Aumentar Vendas</option>
+                            <option value="engagement">Aumentar Engajamento</option>
+                            <option value="retention">Fidelização de Clientes</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="campaign-budget" class="block mb-2 text-sm font-medium text-gray-700">Orçamento (R$) *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500">R$</span>
+                            </div>
+                            <input type="number" id="campaign-budget" required placeholder="0.00" min="0" step="0.01" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="campaign-start-date" class="block mb-2 text-sm font-medium text-gray-700">Data de Início *</label>
+                        <div class="relative">
+                            <input type="date" id="campaign-start-date" required class="w-full pl-10 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition">
+                            <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="campaign-end-date" class="block mb-2 text-sm font-medium text-gray-700">Data de Término *</label>
+                        <div class="relative">
+                            <input type="date" id="campaign-end-date" required class="w-full pl-10 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition">
+                            <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="campaign-status" class="block mb-2 text-sm font-medium text-gray-700">Status *</label>
+                        <select id="campaign-status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition">
+                            <option value="Agendada">Agendada</option>
+                            <option value="Ativa">Ativa</option>
+                            <option value="Pausada">Pausada</option>
+                            <option value="Encerrada">Encerrada</option>
+                            <option value="Cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="campaign-objective-desc" class="block mb-2 text-sm font-medium text-gray-700">Descrição do Objetivo *</label>
+                        <textarea id="campaign-objective-desc" rows="2" placeholder="Detalhe o objetivo principal da campanha..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition"></textarea>
+                    </div>
+                    
+                    <div class="md:col-span-2 border-t border-gray-200 pt-4 mt-2">
+                        <h3 class="font-medium text-gray-700 mb-3">Resultados (preencher após término da campanha)</h3>
+                    </div>
+                    
+                    <div>
+                        <label for="campaign-leads" class="block mb-2 text-sm font-medium text-gray-700">Total de Leads</label>
+                        <input type="number" id="campaign-leads" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition">
+                    </div>
+                    
+                    <div>
+                        <label for="campaign-clicks" class="block mb-2 text-sm font-medium text-gray-700">Total de Cliques</label>
+                        <input type="number" id="campaign-clicks" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition">
+                    </div>
+                    
+                    <div>
+                        <label for="campaign-impressions" class="block mb-2 text-sm font-medium text-gray-700">Total de Impressões</label>
+                        <input type="number" id="campaign-impressions" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition">
+                    </div>
+                    
+                    <div>
+                        <label for="campaign-sales" class="block mb-2 text-sm font-medium text-gray-700">Total de Vendas</label>
+                        <input type="number" id="campaign-sales" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition">
+                    </div>
+                    
+                    <div>
+                        <label for="campaign-revenue" class="block mb-2 text-sm font-medium text-gray-700">Receita Gerada (R$)</label>
+                        <input type="number" id="campaign-revenue" min="0" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition">
+                    </div>
+                    
+                    <div>
+                        <label for="campaign-goal" class="block mb-2 text-sm font-medium text-gray-700">Meta Prevista</label>
+                        <input type="number" id="campaign-goal" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition">
+                        <p class="text-xs text-gray-500 mt-1">Meta que foi definida para o objetivo principal (ex: 500 leads)</p>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="campaign-feedback" class="block mb-2 text-sm font-medium text-gray-700">Avaliação / Feedback</label>
+                        <textarea id="campaign-feedback" rows="2" placeholder="Qual sua avaliação sobre o desempenho desta campanha?" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-marketing focus:border-marketing outline-none transition"></textarea>
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end gap-3">
+                    <button type="button" onclick="closeCampaignFormModal()" class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bg-marketing hover:bg-purple-700 transition flex items-center gap-2 px-4 py-2 text-white rounded-lg">
+                        <i class="fas fa-save"></i>
+                        <span id="campaign-save-button-text">Registrar Campanha</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal de Confirmação de Exclusão para Campanhas -->
+    <div id="delete-campaign-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity">
+        <div class="bg-white rounded-xl w-full max-w-md p-6">
+            <div class="text-center mb-5">
+                <div class="mx-auto bg-red-100 p-3 rounded-full w-16 h-16 flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-xl text-red-600"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 text-center mb-2">Excluir Campanha</h3>
+            <p class="text-gray-500 text-center mb-6">Tem certeza que deseja excluir permanentemente esta campanha?</p>
+            <p id="campaign-to-delete" class="text-center font-medium mb-4 text-lg"></p>
+            <div class="flex justify-center gap-3">
+                <button onclick="closeDeleteCampaignModal()" class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition">
+                    Cancelar
+                </button>
+                <button id="confirm-campaign-delete" class="bg-red-600 hover:bg-red-700 transition flex items-center gap-2 px-4 py-2 text-white rounded-lg">
+                    <i class="fas fa-trash"></i>
+                    <span>Sim, Excluir</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast de Confirmação -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-success text-white py-3 px-6 rounded-lg shadow-lg flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-300 z-50">
+        <i id="toast-icon" class="fas fa-check-circle"></i>
+        <span id="toast-message">Operação realizada com sucesso!</span>
+    </div>
+
+    <script>
+        // Configurações
+        const CAMPAIGNS_KEY = 'campaign_data';
+        const CLIENTS_KEY = 'client_data';
+        const CAMPAIGNS_PER_PAGE = 8;
+        
+        // Variáveis globais
+        let campaigns = [];
+        let filteredCampaigns = [];
+        let clients = [];
+        let currentPage = 1;
+        let isLoading = false;
+        let currentCampaignToDelete = null;
+        let currentCampaignEditId = null;
+        let campaignSortConfig = { key: null, direction: 'asc' };
+
+        // Elementos DOM
+        const campaignTableBody = document.getElementById('campaign-table-body');
+        const campaignLoadingContainer = document.getElementById('campaign-loading-container');
+        const campaignNoResults = document.getElementById('campaign-no-results');
+        const campaignFormModal = document.getElementById('campaign-form-modal');
+        const deleteCampaignModal = document.getElementById('delete-campaign-modal');
+        const campaignForm = document.getElementById('campaign-form');
+        const campaignIdInput = document.getElementById('campaign-id');
+        const campaignToDeleteEl = document.getElementById('campaign-to-delete');
+        const campaignClientSelect = document.getElementById('campaign-client-select');
+        const toast = document.getElementById('toast');
+        const campaignSearchInput = document.getElementById('search-campaign-input');
+        const reportModal = document.getElementById('campaign-report-modal');
+        const reportContent = document.getElementById('report-content');
+
+        // Status classes
+        const campaignStatusClasses = {
+            'Ativa': 'status-ativa',
+            'Pausada': 'status-pausada',
+            'Encerrada': 'status-encerrada',
+            'Cancelada': 'status-cancelada',
+            'Agendada': 'status-agendada'
+        };
+
+        // Status labels
+        const campaignStatusLabels = {
+            'Ativa': 'Ativa',
+            'Pausada': 'Pausada',
+            'Encerrada': 'Encerrada',
+            'Cancelada': 'Cancelada',
+            'Agendada': 'Agendada'
+        };
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', initCampaignPage);
+
+        function initCampaignPage() {
+            // Carregar dados do localStorage
+            loadCampaigns();
+            loadClients();
+            updateCampaignStats();
+            
+            // Event Listeners
+            window.addEventListener('scroll', handleCampaignScroll);
+            campaignForm.addEventListener('submit', handleCampaignFormSubmit);
+            document.getElementById('confirm-campaign-delete').addEventListener('click', handleCampaignDelete);
+            campaignSearchInput.addEventListener('input', handleCampaignSearch);
+            
+            // Preencher dropdown de clientes
+            populateCampaignClientDropdown();
+        }
+
+        // Carrega campanhas do localStorage
+        function loadCampaigns() {
+            try {
+                const savedCampaigns = localStorage.getItem(CAMPAIGNS_KEY);
+                if (savedCampaigns) {
+                    campaigns = JSON.parse(savedCampaigns);
+                }
+                filteredCampaigns = [...campaigns];
+                renderCampaigns();
+            } catch (e) {
+                console.error('Erro ao carregar campanhas:', e);
+                campaigns = [];
+                filteredCampaigns = [];
+            }
+        }
+
+        // Carrega clientes do localStorage
+        function loadClients() {
+            try {
+                const savedClients = localStorage.getItem(CLIENTS_KEY);
+                if (savedClients) {
+                    clients = JSON.parse(savedClients);
+                }
+            } catch (e) {
+                console.error('Erro ao carregar clientes:', e);
+                clients = [];
+            }
+        }
+
+        // Salva campanhas no localStorage
+        function saveCampaigns() {
+            localStorage.setItem(CAMPAIGNS_KEY, JSON.stringify(campaigns));
+            updateCampaignStats();
+            renderCampaigns();
+        }
+
+        // Atualiza as estatísticas da campanha
+        function updateCampaignStats() {
+            const activeCampaigns = campaigns.filter(c => c.status === 'Ativa').length;
+            const totalBudget = campaigns.reduce((sum, c) => sum + parseFloat(c.budget), 0);
+            
+            // Calcular ROI médio (simplificado)
+            const endedCampaigns = campaigns.filter(c => c.status === 'Encerrada' && c.revenue);
+            const avgRoi = endedCampaigns.length > 0 ? 
+                endedCampaigns.reduce((sum, c) => sum + ((c.revenue - c.budget) / c.budget) * 100, 0) / endedCampaigns.length :
+                0;
+            
+            // Taxa de conversão média (simplificada)
+            const convCampaigns = campaigns.filter(c => c.leads > 0);
+            const avgConv = convCampaigns.length > 0 ? 
+                convCampaigns.reduce((sum, c) => sum + (c.sales / c.leads) * 100, 0) / convCampaigns.length :
+                0;
+            
+            // Atualizar UI
+            document.getElementById('active-campaigns').textContent = activeCampaigns;
+            document.getElementById('total-budget').textContent = formatCurrency(totalBudget);
+            document.getElementById('avg-roi').textContent = `${avgRoi.toFixed(1)}%`;
+            document.getElementById('conv-rate').textContent = `${avgConv.toFixed(1)}%`;
+        }
+
+        // Formatar valor monetário
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        }
+
+        // Preencher dropdown de clientes para campanhas
+        function populateCampaignClientDropdown() {
+            campaignClientSelect.innerHTML = '';
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'Selecione um cliente';
+            campaignClientSelect.appendChild(emptyOption);
+            
+            clients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = `${client.name} - ${client.company}`;
+                campaignClientSelect.appendChild(option);
+            });
+            
+            // Se não houver clientes, exibir mensagem
+            if (clients.length === 0) {
+                const noClientOption = document.createElement('option');
+                noClientOption.value = '';
+                noClientOption.disabled = true;
+                noClientOption.textContent = 'Nenhum cliente cadastrado';
+                campaignClientSelect.appendChild(noClientOption);
+            }
+        }
+
+        // Renderiza as campanhas na tabela
+        function renderCampaigns() {
+            if (filteredCampaigns.length === 0) {
+                if (campaigns.length === 0) {
+                    // Se não há campanhas, exibe estado vazio
+                    campaignTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="py-8 text-center">
+                                <div class="flex flex-col items-center justify-center">
+                                    <div class="bg-gray-100 rounded-full p-4 mb-4">
+                                        <i class="fas fa-bullhorn text-2xl text-gray-400"></i>
+                                    </div>
+                                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhuma campanha registrada</h3>
+                                    <p class="text-gray-500 max-w-md mx-auto mb-4">
+                                        Comece criando uma nova campanha para seu cliente
+                                    </p>
+                                    <button onclick="openCampaignFormModal()" class="bg-marketing hover:bg-purple-700 transition flex items-center gap-2 text-white px-4 py-2 rounded-lg">
+                                        <i class="fas fa-plus"></i>
+                                        <span>Nova Campanha</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    // Se há campanhas mas não há correspondência com o filtro
+                    campaignNoResults.classList.remove('hidden');
+                    campaignTableBody.innerHTML = '';
+                }
+                campaignLoadingContainer.classList.add('hidden');
+                return;
+            }
+            
+            campaignNoResults.classList.add('hidden');
+            campaignTableBody.innerHTML = '';
+            
+            // Ordena antes de renderizar, se necessário
+            let campaignsToRender = [...filteredCampaigns];
+            if (campaignSortConfig.key) {
+                campaignsToRender.sort((a, b) => {
+                    let valueA, valueB;
+                    
+                    if (campaignSortConfig.key === 'client') {
+                        const clientA = clients.find(c => c.id === a.client_id) || { name: '' };
+                        const clientB = clients.find(c => c.id === b.client_id) || { name: '' };
+                        valueA = clientA.name.toLowerCase();
+                        valueB = clientB.name.toLowerCase();
+                    } else {
+                        valueA = new Date(a.start_date);
+                        valueB = new Date(b.start_date);
+                    }
+                    
+                    if (valueA < valueB) {
+                        return campaignSortConfig.direction === 'asc' ? -1 : 1;
+                    }
+                    if (valueA > valueB) {
+                        return campaignSortConfig.direction === 'asc' ? 1 : -1;
+                    }
+                    return 0;
+                });
+            }
+            
+            // Renderiza cada campanha
+            campaignsToRender.forEach(campaign => {
+                const client = clients.find(c => c.id === campaign.client_id) || { name: 'Cliente desconhecido', company: '' };
+                
+                const startDate = new Date(campaign.start_date);
+                const endDate = new Date(campaign.end_date);
+                const now = new Date();
+                
+                // Calcular indicadores básicos
+                const cpl = campaign.leads > 0 ? parseFloat(campaign.budget) / parseInt(campaign.leads) : 0;
+                const roi = campaign.revenue > 0 ? ((parseFloat(campaign.revenue) - parseFloat(campaign.budget)) / parseFloat(campaign.budget)) * 100 : 0;
+                
+                const row = document.createElement('tr');
+                row.className = 'campaign-row hover:bg-gray-50 transition';
+                row.innerHTML = `
+                    <td class="py-4 px-6">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center">
+                                <i class="fas fa-user text-gray-500"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">${client.name}</p>
+                                <p class="text-sm text-gray-500">${client.company}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <p class="font-semibold text-gray-800">${campaign.name}</p>
+                        <p class="text-sm text-gray-500 mt-1">${campaign.objective_desc.substring(0, 40)}...</p>
+                    </td>
+                    <td class="py-4 px-6">
+                        <p>${startDate.toLocaleDateString('pt-BR')}</p>
+                        <p class="text-gray-500 text-sm">até ${endDate.toLocaleDateString('pt-BR')}</p>
+                        ${now > endDate ? '<span class="text-xs text-gray-400">Finalizada</span>' : ''}
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="font-semibold">${formatCurrency(campaign.budget)}</span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <div class="flex flex-col gap-1">
+                            <div>
+                                <span class="text-xs text-gray-600">CPL: </span>
+                                <span class="text-sm font-medium">${campaign.leads > 0 ? 'R$ ' + cpl.toFixed(2) : 'N/D'}</span>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-600">ROI: </span>
+                                <span class="text-sm font-medium ${roi > 0 ? 'text-green-600' : roi < 0 ? 'text-red-600' : 'text-gray-600'}">${roi > 0 ? '+' : ''}${roi.toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="status-badge ${campaignStatusClasses[campaign.status]}">${campaignStatusLabels[campaign.status]}</span>
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        <div class="flex gap-2 justify-end">
+                            <button onclick="openCampaignEditModal('${campaign.id}')" class="p-2 rounded-lg text-gray-500 hover:text-marketing hover:bg-purple-50 transition">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="openDeleteCampaignModal('${campaign.id}')" class="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button onclick="openCampaignReport('${campaign.id}')" class="p-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition">
+                                <i class="fas fa-file-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                campaignTableBody.appendChild(row);
+            });
+            
+            // Esconde o loading se não houver mais dados para carregar
+            campaignLoadingContainer.classList.add('hidden');
+        }
+
+        // Abre o modal do formulário para criação
+        function openCampaignFormModal() {
+            resetCampaignForm();
+            document.getElementById('campaign-form-modal-title').textContent = 'Nova Campanha';
+            document.getElementById('campaign-save-button-text').textContent = 'Registrar Campanha';
+            campaignFormModal.classList.remove('hidden');
+            setTimeout(() => {
+                campaignFormModal.style.opacity = '1';
+                // Definir datas padrão
+                const today = new Date();
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 7);
+                
+                document.getElementById('campaign-start-date').value = today.toISOString().split('T')[0];
+                document.getElementById('campaign-end-date').value = tomorrow.toISOString().split('T')[0];
+            }, 10);
+        }
+
+        // Abre o modal do formulário para edição
+        function openCampaignEditModal(id) {
+            const campaign = campaigns.find(c => c.id === id);
+            if (!campaign) return;
+            
+            currentCampaignEditId = id;
+            document.getElementById('campaign-form-modal-title').textContent = 'Editar Campanha';
+            document.getElementById('campaign-save-button-text').textContent = 'Atualizar Campanha';
+            
+            campaignIdInput.value = campaign.id;
+            document.getElementById('campaign-name').value = campaign.name;
+            document.getElementById('campaign-client-select').value = campaign.client_id;
+            document.getElementById('campaign-objective').value = campaign.objective;
+            document.getElementById('campaign-budget').value = campaign.budget;
+            document.getElementById('campaign-start-date').value = new Date(campaign.start_date).toISOString().split('T')[0];
+            document.getElementById('campaign-end-date').value = new Date(campaign.end_date).toISOString().split('T')[0];
+            document.getElementById('campaign-status').value = campaign.status;
+            document.getElementById('campaign-objective-desc').value = campaign.objective_desc;
+            document.getElementById('campaign-leads').value = campaign.leads || '';
+            document.getElementById('campaign-clicks').value = campaign.clicks || '';
+            document.getElementById('campaign-impressions').value = campaign.impressions || '';
+            document.getElementById('campaign-sales').value = campaign.sales || '';
+            document.getElementById('campaign-revenue').value = campaign.revenue || '';
+            document.getElementById('campaign-goal').value = campaign.goal || '';
+            document.getElementById('campaign-feedback').value = campaign.feedback || '';
+            
+            campaignFormModal.classList.remove('hidden');
+            setTimeout(() => {
+                campaignFormModal.style.opacity = '1';
+            }, 10);
+        }
+
+        // Fecha o modal do formulário de campanha
+        function closeCampaignFormModal() {
+            campaignFormModal.style.opacity = '0';
+            setTimeout(() => {
+                campaignFormModal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Reseta o formulário de campanha
+        function resetCampaignForm() {
+            campaignIdInput.value = '';
+            document.getElementById('campaign-name').value = '';
+            document.getElementById('campaign-client-select').value = '';
+            document.getElementById('campaign-objective').value = '';
+            document.getElementById('campaign-budget').value = '';
+            document.getElementById('campaign-objective-desc').value = '';
+            document.getElementById('campaign-leads').value = '';
+            document.getElementById('campaign-clicks').value = '';
+            document.getElementById('campaign-impressions').value = '';
+            document.getElementById('campaign-sales').value = '';
+            document.getElementById('campaign-revenue').value = '';
+            document.getElementById('campaign-goal').value = '';
+            document.getElementById('campaign-feedback').value = '';
+            document.getElementById('campaign-status').value = 'Agendada';
+            
+            currentCampaignEditId = null;
+        }
+
+        // Manipula o envio do formulário de campanha
+        function handleCampaignFormSubmit(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('campaign-name').value;
+            const clientId = document.getElementById('campaign-client-select').value;
+            const objective = document.getElementById('campaign-objective').value;
+            const budget = document.getElementById('campaign-budget').value;
+            const startDate = document.getElementById('campaign-start-date').value;
+            const endDate = document.getElementById('campaign-end-date').value;
+            const status = document.getElementById('campaign-status').value;
+            const objectiveDesc = document.getElementById('campaign-objective-desc').value;
+            const leads = document.getElementById('campaign-leads').value;
+            const clicks = document.getElementById('campaign-clicks').value;
+            const impressions = document.getElementById('campaign-impressions').value;
+            const sales = document.getElementById('campaign-sales').value;
+            const revenue = document.getElementById('campaign-revenue').value;
+            const goal = document.getElementById('campaign-goal').value;
+            const feedback = document.getElementById('campaign-feedback').value;
+            
+            // Validação
+            if (!name || !clientId || !objective || !budget || !startDate || !endDate || !status || !objectiveDesc) {
+                showToast('Preencha todos os campos obrigatórios!', 'danger');
+                return;
+            }
+            
+            // Encontra o cliente
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                showToast('Cliente não encontrado!', 'danger');
+                return;
+            }
+            
+            // Valida datas
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            if (start > end) {
+                showToast('A data de término deve ser posterior à data de início!', 'danger');
+                return;
+            }
+            
+            const campaignData = { 
+                id: currentCampaignEditId || generateCampaignId(),
+                name: name,
+                client_id: clientId,
+                client_name: client.name,
+                company: client.company,
+                objective: objective,
+                budget: budget,
+                start_date: startDate,
+                end_date: endDate,
+                status: status,
+                objective_desc: objectiveDesc,
+                leads: leads || 0,
+                clicks: clicks || 0,
+                impressions: impressions || 0,
+                sales: sales || 0,
+                revenue: revenue || 0,
+                goal: goal || 0,
+                feedback: feedback || '',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
+            
+            if (currentCampaignEditId) {
+                // Atualizar campanha existente
+                const index = campaigns.findIndex(c => c.id === currentCampaignEditId);
+                if (index !== -1) {
+                    campaigns[index] = campaignData;
+                    saveCampaigns();
+                    showToast('Campanha atualizada com sucesso!');
+                }
+            } else {
+                // Adicionar nova campanha
+                campaigns.push(campaignData);
+                saveCampaigns();
+                showToast('Campanha registrada com sucesso!');
+            }
+            
+            closeCampaignFormModal();
+        }
+
+        // Gera ID único para campanha
+        function generateCampaignId() {
+            return 'camp_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+        }
+
+        // Abre o modal de confirmação de exclusão
+        function openDeleteCampaignModal(id) {
+            const campaign = campaigns.find(c => c.id === id);
+            if (!campaign) return;
+            
+            currentCampaignToDelete = id;
+            campaignToDeleteEl.textContent = campaign.name;
+            deleteCampaignModal.classList.remove('hidden');
+            setTimeout(() => {
+                deleteCampaignModal.style.opacity = '1';
+            }, 10);
+        }
+
+        // Fecha o modal de confirmação de exclusão
+        function closeDeleteCampaignModal() {
+            deleteCampaignModal.style.opacity = '0';
+            setTimeout(() => {
+                deleteCampaignModal.classList.add('hidden');
+                currentCampaignToDelete = null;
+            }, 300);
+        }
+
+        // Exclui uma campanha
+        function handleCampaignDelete() {
+            if (!currentCampaignToDelete) return;
+            
+            campaigns = campaigns.filter(c => c.id !== currentCampaignToDelete);
+            saveCampaigns();
+            showToast('Campanha excluída com sucesso!', 'danger');
+            closeDeleteCampaignModal();
+        }
+
+        // Ordenação de campanhas
+        function sortCampaigns(key) {
+            if (campaignSortConfig.key === key) {
+                campaignSortConfig.direction = campaignSortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                campaignSortConfig.key = key;
+                campaignSortConfig.direction = 'asc';
+            }
+            
+            // Atualiza ícones
+            document.querySelectorAll('[id^="sort-"]').forEach(icon => {
+                icon.className = 'fas fa-sort text-gray-400';
+            });
+            
+            const icon = document.getElementById(`sort-${key}-icon`);
+            if (icon) {
+                icon.className = campaignSortConfig.direction === 'asc' ? 
+                    'fas fa-sort-up text-marketing' : 
+                    'fas fa-sort-down text-marketing';
+            }
+            
+            renderCampaigns();
+        }
+
+        // Manipula busca de campanhas
+        function handleCampaignSearch() {
+            const term = campaignSearchInput.value.toLowerCase().trim();
+            
+            if (!term) {
+                filteredCampaigns = [...campaigns];
+            } else {
+                filteredCampaigns = campaigns.filter(camp => {
+                    const client = clients.find(c => c.id === camp.client_id) || {};
+                    return (
+                        (camp.name && camp.name.toLowerCase().includes(term)) ||
+                        (camp.objective && camp.objective.toLowerCase().includes(term)) ||
+                        (camp.objective_desc && camp.objective_desc.toLowerCase().includes(term)) ||
+                        (camp.status && camp.status.toLowerCase().includes(term)) ||
+                        (client.name && client.name.toLowerCase().includes(term))
+                    );
+                });
+            }
+            
+            renderCampaigns();
+        }
+
+        // Manipula o scroll para carregar mais campanhas
+        function handleCampaignScroll() {
+            if (isLoading) return;
+            
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            const scrollPosition = scrollTop + clientHeight;
+            
+            if (scrollPosition >= scrollHeight - 100 && filteredCampaigns.length > CAMPAIGNS_PER_PAGE) {
+                loadMoreCampaigns();
+            }
+        }
+
+        // Carrega mais campanhas
+        function loadMoreCampaigns() {
+            isLoading = true;
+            campaignLoadingContainer.classList.remove('hidden');
+            
+            setTimeout(() => {
+                currentPage++;
+                renderCampaigns();
+                isLoading = false;
+            }, 800);
+        }
+
+        // Mostra toast de confirmação
+        function showToast(message, type = 'success') {
+            const toastIcon = document.getElementById('toast-icon');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.className = `fixed bottom-6 right-6 text-white py-3 px-6 rounded-lg shadow-lg flex items-center gap-3 z-50`;
+            
+            if (type === 'success') {
+                toast.classList.add('bg-success');
+                toastIcon.className = 'fas fa-check-circle';
+            } else {
+                toast.classList.add('bg-danger');
+                toastIcon.className = 'fas fa-exclamation-circle';
+            }
+            
+            toast.classList.remove('opacity-0');
+            toast.classList.remove('translate-y-10');
+            toast.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                toast.classList.add('translate-y-10');
+            }, 3000);
+        }
+        
+        // Abre o modal de relatório
+        function openReportModal() {
+            reportModal.classList.remove('hidden');
+            setTimeout(() => {
+                reportModal.style.opacity = '1';
+            }, 10);
+        }
+
+        // Fecha o modal de relatório
+        function closeReportModal() {
+            reportModal.style.opacity = '0';
+            setTimeout(() => {
+                reportModal.classList.add('hidden');
+            }, 300);
+        }
+        
+        // Gera e mostra o relatório da campanha
+        function openCampaignReport(id) {
+            const campaign = campaigns.find(c => c.id === id);
+            if (!campaign) return;
+            
+            const client = clients.find(c => c.id === campaign.client_id) || {};
+            
+            // Calcula indicadores de performance
+            const indicators = calculatePerformanceIndicators(campaign);
+            
+            // Gera HTML do relatório
+            const reportHTML = `
+                <div class="bg-white rounded-lg p-6 mb-6 shadow-sm print:p-2 print:shadow-none print:mb-2">
+                    <h3 class="text-xl font-bold text-marketing mb-4 border-b pb-2 print:text-base print:mb-2 print:pb-1">
+                        Informações da Campanha
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 print:grid-cols-2 print:gap-2">
+                        <div>
+                        <p class="text-sm text-gray-500 print:text-xs">Cliente</p>
+                        <p class="font-medium print:text-sm">${client.name || 'N/A'}</p>
+                        </div>
+                        <div>
+                        <p class="text-sm text-gray-500 print:text-xs">Nome da Campanha</p>
+                        <p class="font-medium print:text-sm">${campaign.name}</p>
+                        </div>
+                        <div>
+                        <p class="text-sm text-gray-500 print:text-xs">Status</p>
+                        <p class="font-medium print:text-sm">${campaignStatusLabels[campaign.status]}</p>
+                        </div>
+                        <div>
+                        <p class="text-sm text-gray-500 print:text-xs">Orçamento</p>
+                        <p class="font-medium print:text-sm">${formatCurrency(campaign.budget)}</p>
+                        </div>
+                        <div>
+                        <p class="text-sm text-gray-500 print:text-xs">Período</p>
+                        <p class="font-medium print:text-sm">
+                            ${new Date(campaign.start_date).toLocaleDateString('pt-BR')} a 
+                            ${new Date(campaign.end_date).toLocaleDateString('pt-BR')}
+                        </p>
+                        </div>
+                        <div>
+                        <p class="text-sm text-gray-500 print:text-xs">Objetivo</p>
+                        <p class="font-medium print:text-sm">${campaign.objective_desc}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-6 mb-6 shadow-sm print:p-2 print:mb-2 print:shadow-none">
+                    <h3 class="text-xl font-bold text-marketing mb-4 border-b pb-2 print:text-base print:mb-2 print:pb-1">
+                        Resultados Obtidos
+                    </h3>
+
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 print:grid-cols-3 print:gap-2">
+                        <div class="bg-gray-50 rounded-lg p-4 text-center print:p-2">
+                        <p class="text-2xl font-bold print:text-base">${campaign.leads}</p>
+                        <p class="text-sm text-gray-600 print:text-xs">Leads</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4 text-center print:p-2">
+                        <p class="text-2xl font-bold print:text-base">${campaign.clicks}</p>
+                        <p class="text-sm text-gray-600 print:text-xs">Cliques</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4 text-center print:p-2">
+                        <p class="text-2xl font-bold print:text-base">${campaign.impressions}</p>
+                        <p class="text-sm text-gray-600 print:text-xs">Impressões</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4 text-center print:p-2">
+                        <p class="text-2xl font-bold print:text-base">${campaign.sales}</p>
+                        <p class="text-sm text-gray-600 print:text-xs">Vendas</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4 text-center print:p-2">
+                        <p class="text-2xl font-bold print:text-base">${campaign.revenue ? formatCurrency(campaign.revenue) : 'R$ 0'}</p>
+                        <p class="text-sm text-gray-600 print:text-xs">Receita</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4 text-center print:p-2">
+                        <p class="text-2xl font-bold print:text-base">${campaign.goal || 0}</p>
+                        <p class="text-sm text-gray-600 print:text-xs">Meta</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-6 shadow-sm print:p-2 print:shadow-none print:rounded-none">
+                    <h3 class="text-xl font-bold text-marketing mb-4 border-b pb-2 print:text-base print:mb-2 print:pb-1">
+                        Indicadores de Performance
+                    </h3>
+
+                    <div class="overflow-x-auto print:overflow-visible">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm print:text-xs">
+                        <thead class="bg-gray-50 print:bg-transparent">
+                            <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider print:px-2 print:py-1">
+                                Indicador
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider print:px-2 print:py-1 print:hidden">
+                                Fórmula
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider print:px-2 print:py-1">
+                                Valor
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider print:px-2 print:py-1 print:hidden">
+                                Resultado
+                            </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200 print:divide-gray-300">
+                            ${Object.entries(indicators).map(([name, data]) => `
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 print:px-2 print:py-1 print:text-xs">${name}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 print:hidden">${data.formula}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${data.color} print:px-2 print:py-1 print:text-xs">${data.value}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 print:hidden">${data.result}</td>
+                            </tr>
+                            `).join('')}
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                
+                ${campaign.feedback ? `
+                    <div class="bg-white rounded-lg p-6 shadow-sm mt-6">
+                        <h3 class="text-xl font-bold text-marketing mb-4 border-b pb-2">Avaliação</h3>
+                        <p class="text-gray-700 italic">${campaign.feedback}</p>
+                    </div>
+                ` : ''}
+            `;
+            
+            reportContent.innerHTML = reportHTML;
+            openReportModal();
+        }
+
+        // Calcula indicadores de performance
+        function calculatePerformanceIndicators(campaign) {
+            const budget = parseFloat(campaign.budget);
+            const leads = parseInt(campaign.leads) || 0;
+            const clicks = parseInt(campaign.clicks) || 0;
+            const impressions = parseInt(campaign.impressions) || 0;
+            const sales = parseInt(campaign.sales) || 0;
+            const revenue = parseFloat(campaign.revenue) || 0;
+            const goal = parseInt(campaign.goal) || 0;
+            
+            // Duração em dias
+            const start = new Date(campaign.start_date);
+            const end = new Date(campaign.end_date);
+            const durationDays = Math.max(0, Math.floor((end - start) / (1000 * 60 * 60 * 24)));
+            
+            return {
+                'CPL (Custo por Lead)': {
+                    formula: `Orçamento / Total de Leads = ${budget} / ${leads}`,
+                    value: leads > 0 ? `R$ ${(budget / leads).toFixed(2)}` : 'N/D',
+                    result: 'Custo por cada lead gerado',
+                    color: leads > 0 ? 'text-blue-600' : 'text-gray-500'
+                },
+                'CPA (Custo por Ação)': {
+                    formula: `Orçamento / Total de Vendas = ${budget} / ${sales}`,
+                    value: sales > 0 ? `R$ ${(budget / sales).toFixed(2)}` : 'N/D',
+                    result: 'Custo por cada ação (venda)',
+                    color: sales > 0 ? 'text-blue-600' : 'text-gray-500'
+                },
+                'CTR (Click Through Rate)': {
+                    formula: `(Cliques / Impressões) * 100 = (${clicks} / ${impressions}) * 100`,
+                    value: impressions > 0 ? `${((clicks / impressions) * 100).toFixed(2)}%` : 'N/D',
+                    result: 'Taxa de cliques no anúncio',
+                    color: impressions > 0 ? 'text-blue-600' : 'text-gray-500'
+                },
+                'CPC (Custo por Clique)': {
+                    formula: `Orçamento / Cliques = ${budget} / ${clicks}`,
+                    value: clicks > 0 ? `R$ ${(budget / clicks).toFixed(2)}` : 'N/D',
+                    result: 'Custo por cada clique',
+                    color: clicks > 0 ? 'text-blue-600' : 'text-gray-500'
+                },
+                'CPM (Custo por Mil Impressões)': {
+                    formula: `(Orçamento / Impressões) * 1000 = (${budget} / ${impressions}) * 1000`,
+                    value: impressions > 0 ? `R$ ${((budget / impressions) * 1000).toFixed(2)}` : 'N/D',
+                    result: 'Custo por mil impressões',
+                    color: impressions > 0 ? 'text-blue-600' : 'text-gray-500'
+                },
+                'ROI (Retorno sobre Investimento)': {
+                    formula: `((Receita - Orçamento) / Orçamento) * 100 = ((${revenue} - ${budget}) / ${budget}) * 100`,
+                    value: budget > 0 ? `${(((revenue - budget) / budget) * 100).toFixed(2)}%` : 'N/D',
+                    result: 'Percentual de retorno sobre investimento',
+                    color: (revenue - budget) > 0 ? 'text-green-600' : (revenue - budget) < 0 ? 'text-red-600' : 'text-gray-500'
+                },
+                'ROAS (Retorno sobre Gasto)': {
+                    formula: `Receita / Orçamento = ${revenue} / ${budget}`,
+                    value: budget > 0 ? `${(revenue / budget).toFixed(2)}` : 'N/D',
+                    result: 'Rendimento por real investido',
+                    color: (revenue / budget) > 1 ? 'text-green-600' : (revenue / budget) < 1 ? 'text-red-600' : 'text-gray-500'
+                },
+                'Duração da Campanha': {
+                    formula: `Data de Término - Data de Início = ${end.toLocaleDateString('pt-BR')} - ${start.toLocaleDateString('pt-BR')}`,
+                    value: `${durationDays} dias`,
+                    result: 'Tempo de execução da campanha',
+                    color: 'text-gray-800'
+                },
+                'Atingimento de Meta (%)': {
+                    formula: `(Resultado Alcançado / Meta Prevista) * 100 = (${leads} / ${goal}) * 100`,
+                    value: goal > 0 ? `${((leads / goal) * 100).toFixed(2)}%` : 'N/D',
+                    result: 'Percentual da meta alcançada',
+                    color: (leads / goal) >= 1 ? 'text-green-600' : (leads / goal) >= 0.7 ? 'text-yellow-600' : 'text-red-600'
+                },
+                'Eficiência de Conversão': {
+                    formula: `(Total de Vendas / Total de Leads) * 100 = (${sales} / ${leads}) * 100`,
+                    value: leads > 0 ? `${((sales / leads) * 100).toFixed(2)}%` : 'N/D',
+                    result: 'Taxa de conversão de leads em vendas',
+                    color: sales > 0 ? 'text-green-600' : 'text-gray-500'
+                }
+            };
+        }
+        
+    </script>
+    
+
+
+</body>
+</html>

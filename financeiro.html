@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataControl | Sistema de Gerenciamento de Dados</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+        <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/favicon.png">
+
+    <!-- Open Graph (Facebook, LinkedIn, etc) -->
+    <meta property="og:title" content="DataControl – Gerencie Dados com Eficiência">
+    <meta property="og:description" content="Solução completa para visualizar, exportar e importar dados do LocalStorage com simplicidade e segurança.">
+    <meta property="og:url" content="https://betinribeiro.github.io/datacontrol/">
+    <meta property="og:image" content="https://betinribeiro.github.io/datacontrol/assets/preview.png">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="DataControl – Gerencie Dados com Eficiência">
+    <meta name="twitter:description" content="Solução completa para visualizar, exportar e importar dados do LocalStorage com simplicidade e segurança.">
+    <meta name="twitter:image" content="https://betinribeiro.github.io/datacontrol/assets/preview.png">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        secondary: '#3f37c9',
+                        dark: '#1d3557',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        light: '#f8f9fa'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .slide-fade-enter-active, .slide-fade-leave-active {
+            transition: all 0.3s ease;
+        }
+        .slide-fade-enter-from, .slide-fade-leave-to {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        
+        .bounce-enter-active {
+            animation: bounce-in 0.3s;
+        }
+        .bounce-leave-active {
+            animation: bounce-in 0.3s reverse;
+        }
+        @keyframes bounce-in {
+            0% {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        /* Tipo de pagamento icons */
+        .payment-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 18px;
+        }
+        .payment-pix {
+            background-color: #32bcad;
+            color: white;
+        }
+        .payment-transferencia {
+            background-color: #3a86ff;
+            color: white;
+        }
+        .payment-boleto {
+            background-color: #8338ec;
+            color: white;
+        }
+        .payment-cartao {
+            background-color: #ff006e;
+            color: white;
+        }
+        .payment-dinheiro {
+            background-color: #4e9d40;
+            color: white;
+        }
+        
+        /* Status badges */
+        .status-badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-pago {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .status-pendente {
+            background-color: #fffbeb;
+            color: #92400e;
+        }
+        .status-atrasado {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        /* Shimmer animation for empty state */
+        .shimmer {
+            background: #f6f7f8;
+            background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+            background-repeat: no-repeat;
+            background-size: 800px 104px; 
+            display: inline-block;
+            position: relative; 
+            animation: shimmer 1.4s infinite linear;
+        }
+        @keyframes shimmer {
+            0% {
+                background-position: -800px 0;
+            }
+            100% {
+                background-position: 800px 0; 
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Cabeçalho -->
+        <header class="flex flex-col sm:flex-row justify-between items-start gap-6 mb-10">
+            <div>
+                <h1 class="text-3xl font-bold text-dark flex items-center gap-2">
+                    <i class="fas fa-money-bill-wave text-green-500"></i>
+                     <a href="index.html" >
+                    Controle Financeiro
+                    </a>
+                </h1>
+                <p class="text-gray-600">Pagamentos e recebimentos dos clientes</p>
+            </div>
+            
+            <!-- Abas para alternar entre pagamentos e outros módulos -->
+            <div class="flex flex-col items-end w-full sm:w-auto">
+                <nav class="flex gap-4 mb-4 border-b border-gray-200">
+                    <a href="cliente.html" class="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-900" >
+                        <i class="fas fa-user-tie mr-2"></i> Clientes
+                    </a>
+                    <a href="credencial.html" class="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-900" >
+                        <i class="fas fa-key mr-2"></i> Credenciais
+                    </a>
+                    <span class="inline-flex items-center px-3 py-2 border-b-2 border-green-500 text-green-500 font-medium">
+                        <i class="fas fa-money-bill-wave mr-2"></i> Pagamentos
+                    </span>
+
+                    <a href="campanha.html" class="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-900" >
+                            <i class="fas fa-bullhorn mr-2"></i> Campanhas
+                    </a>
+
+                </nav>
+                
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="relative">
+                        <input type="text" id="search-payment-input" placeholder="Buscar pagamento..." class="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition">
+                        <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <button onclick="openPaymentFormModal()" class="bg-green-500 hover:bg-green-600 transition flex items-center gap-2 text-white px-4 py-2 rounded-lg">
+                        <i class="fas fa-plus"></i>
+                        <span class="hidden sm:inline">Novo Pagamento</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Resumo estatístico financeiro -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Total Recebido</p>
+                        <h2 id="total-recebido" class="text-3xl font-bold text-gray-800">R$ 0,00</h2>
+                        <p class="text-sm text-green-500 mt-1">Últimos 30 dias: R$ 0,00</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-cash-register text-xl text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Pendentes</p>
+                        <h2 id="total-pendentes" class="text-3xl font-bold text-gray-800">R$ 0,00</h2>
+                        <p class="text-sm text-yellow-500 mt-1"><span id="count-pendentes">0</span> pagamentos</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-clock text-xl text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Atrasados</p>
+                        <h2 id="total-atrasados" class="text-3xl font-bold text-gray-800">R$ 0,00</h2>
+                        <p class="text-sm text-red-500 mt-1"><span id="count-atrasados">0</span> pagamentos</p>
+                    </div>
+                    <div class="bg-red-100 p-3 rounded-full">
+                        <i class="fas fa-exclamation-triangle text-xl text-red-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-600 font-medium">Média Mensal</p>
+                        <h2 id="media-mensal" class="text-3xl font-bold text-gray-800">R$ 0,00</h2>
+                        <p class="text-sm text-purple-500 mt-1">Baseado nos últimos 6 meses</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-chart-line text-xl text-purple-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Pagamentos -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onclick="sortPayments('client')">
+                                <div class="flex items-center gap-1">
+                                    Cliente 
+                                    <i id="sort-client-payment-icon" class="fas fa-sort text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onclick="sortPayments('value')">
+                                <div class="flex items-center gap-1">
+                                    Valor 
+                                    <i id="sort-value-icon" class="fas fa-sort text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onclick="sortPayments('date')">
+                                <div class="flex items-center gap-1">
+                                    Data 
+                                    <i id="sort-date-icon" class="fas fa-sort text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Método</th>
+                            <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="py-4 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payment-table-body" class="divide-y divide-gray-200">
+                        <!-- Mostrar estado vazio até os dados serem carregados -->
+                        <tr>
+                            <td colspan="6" class="py-8 text-center">
+                                <div class="flex flex-col items-center justify-center">
+                                    <div class="bg-gray-100 rounded-full p-4 mb-4">
+                                        <i class="fas fa-money-bill-wave text-2xl text-gray-400"></i>
+                                    </div>
+                                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum pagamento registrado</h3>
+                                    <p class="text-gray-500 max-w-md mx-auto mb-4">
+                                        Comece criando um novo registro de pagamento para controlar o financeiro
+                                    </p>
+                                    <button onclick="openPaymentFormModal()" class="bg-green-500 hover:bg-green-600 transition flex items-center gap-2 text-white px-4 py-2 rounded-lg">
+                                        <i class="fas fa-plus"></i>
+                                        <span>Novo Pagamento</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Loading infinito e mensagem de sem resultados -->
+            <div id="payment-loading-container" class="p-6 hidden">
+                <div class="flex justify-center items-center gap-3">
+                    <div class="animate-spin rounded-full h-6 w-6 border-t-2 border-l-2 border-green-500"></div>
+                    <p class="text-gray-600">Carregando mais pagamentos...</p>
+                </div>
+            </div>
+            
+            <div id="payment-no-results" class="p-10 text-center hidden">
+                <div class="mb-4 text-gray-400">
+                    <i class="fas fa-money-bill-wave text-4xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum pagamento encontrado</h3>
+                <p class="text-gray-500">Verifique os filtros ou clique em "Novo Pagamento" para cadastrar</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Formulário para Pagamentos -->
+    <div id="payment-form-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden transition-opacity opacity-0">
+        <div class="bg-white rounded-xl w-full max-w-2xl shadow-xl transition-transform transform">
+            <div class="border-b border-gray-200 px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-semibold text-gray-800" id="payment-form-modal-title">Novo Pagamento</h2>
+                    <button onclick="closePaymentFormModal()" class="text-gray-400 hover:text-gray-600 rounded-full h-8 w-8 flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="payment-form" class="p-6">
+                <input type="hidden" id="payment-id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="payment-client-select" class="block mb-2 text-sm font-medium text-gray-700">Cliente *</label>
+                        <select id="payment-client-select" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-green-500 focus:border-green-500 outline-none transition">
+                            <option value="">Selecione um cliente</option>
+                            <!-- Clientes serão carregados aqui via JavaScript -->
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="payment-value" class="block mb-2 text-sm font-medium text-gray-700">Valor (R$) *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500">R$</span>
+                            </div>
+                            <input type="number" id="payment-value" required placeholder="0.00" min="0" step="0.01" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-green-500 focus:border-green-500 outline-none transition">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="payment-date" class="block mb-2 text-sm font-medium text-gray-700">Data de Pagamento *</label>
+                        <div class="relative">
+                            <input type="date" id="payment-date" required class="w-full pl-10 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-green-500 focus:border-green-500 outline-none transition">
+                            <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="payment-method" class="block mb-2 text-sm font-medium text-gray-700">Método *</label>
+                        <select id="payment-method" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-green-500 focus:border-green-500 outline-none transition">
+                            <option value="">Selecione o método</option>
+                            <option value="Pix">Pix</option>
+                            <option value="Transferência">Transferência Bancária</option>
+                            <option value="Boleto">Boleto</option>
+                            <option value="Cartão">Cartão de Crédito</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="payment-status" class="block mb-2 text-sm font-medium text-gray-700">Status *</label>
+                        <select id="payment-status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-green-500 focus:border-green-500 outline-none transition">
+                            <option value="Pago">Pago</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Atrasado">Atrasado</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="payment-reference" class="block mb-2 text-sm font-medium text-gray-700">Referência/Número</label>
+                        <input type="text" id="payment-reference" placeholder="Comprovante, N° boleto, etc." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-green-500 focus:border-green-500 outline-none transition">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="payment-notes" class="block mb-2 text-sm font-medium text-gray-700">Observações</label>
+                        <textarea id="payment-notes" rows="3" placeholder="Detalhes adicionais sobre este pagamento..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-green-500 focus:border-green-500 outline-none transition"></textarea>
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end gap-3">
+                    <button type="button" onclick="closePaymentFormModal()" class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 transition flex items-center gap-2 px-4 py-2 text-white rounded-lg">
+                        <i class="fas fa-save"></i>
+                        <span id="payment-save-button-text">Registrar Pagamento</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal de Confirmação de Exclusão para Pagamentos -->
+    <div id="delete-payment-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity">
+        <div class="bg-white rounded-xl w-full max-w-md p-6">
+            <div class="text-center mb-5">
+                <div class="mx-auto bg-red-100 p-3 rounded-full w-16 h-16 flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-xl text-red-600"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 text-center mb-2">Excluir Pagamento</h3>
+            <p class="text-gray-500 text-center mb-6">Tem certeza que deseja excluir permanentemente este registro de pagamento?</p>
+            <p id="payment-to-delete" class="text-center font-medium mb-4 text-lg"></p>
+            <div class="flex justify-center gap-3">
+                <button onclick="closeDeletePaymentModal()" class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition">
+                    Cancelar
+                </button>
+                <button id="confirm-payment-delete" class="bg-red-600 hover:bg-red-700 transition flex items-center gap-2 px-4 py-2 text-white rounded-lg">
+                    <i class="fas fa-trash"></i>
+                    <span>Sim, Excluir</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast de Confirmação -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-success text-white py-3 px-6 rounded-lg shadow-lg flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-300 z-50">
+        <i id="toast-icon" class="fas fa-check-circle"></i>
+        <span id="toast-message">Operação realizada com sucesso!</span>
+    </div>
+
+    <script>
+        // Configurações
+        const PAYMENTS_KEY = 'payment_data';
+        const CLIENTS_KEY = 'client_data';
+        const PAYMENTS_PER_PAGE = 10;
+        
+        // Variáveis globais
+        let payments = [];
+        let filteredPayments = [];
+        let clients = [];
+        let currentPage = 1;
+        let isLoading = false;
+        let currentPaymentToDelete = null;
+        let currentPaymentEditId = null;
+        let paymentSortConfig = { key: null, direction: 'asc' };
+
+        // Elementos DOM
+        const paymentTableBody = document.getElementById('payment-table-body');
+        const paymentLoadingContainer = document.getElementById('payment-loading-container');
+        const paymentNoResults = document.getElementById('payment-no-results');
+        const paymentFormModal = document.getElementById('payment-form-modal');
+        const deletePaymentModal = document.getElementById('delete-payment-modal');
+        const paymentForm = document.getElementById('payment-form');
+        const paymentIdInput = document.getElementById('payment-id');
+        const paymentToDeleteEl = document.getElementById('payment-to-delete');
+        const paymentClientSelect = document.getElementById('payment-client-select');
+        const toast = document.getElementById('toast');
+        const paymentSearchInput = document.getElementById('search-payment-input');
+
+        // Mapeamento de ícones para métodos de pagamento
+        const paymentMethodIcons = {
+            'Pix': { icon: 'fas fa-qrcode', class: 'payment-pix' },
+            'Transferência': { icon: 'fas fa-exchange-alt', class: 'payment-transferencia' },
+            'Boleto': { icon: 'fas fa-barcode', class: 'payment-boleto' },
+            'Cartão': { icon: 'fas fa-credit-card', class: 'payment-cartao' },
+            'Dinheiro': { icon: 'fas fa-money-bill-wave', class: 'payment-dinheiro' }
+        };
+
+        // Status classes
+        const paymentStatusClasses = {
+            'Pago': 'status-pago',
+            'Pendente': 'status-pendente',
+            'Atrasado': 'status-atrasado'
+        };
+
+        // Status labels
+        const paymentStatusLabels = {
+            'Pago': 'Pago',
+            'Pendente': 'Pendente',
+            'Atrasado': 'Atrasado'
+        };
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', initPaymentPage);
+
+        function initPaymentPage() {
+            // Carregar dados do localStorage
+            loadPayments();
+            loadClients();
+            updatePaymentStats();
+            
+            // Event Listeners
+            window.addEventListener('scroll', handlePaymentScroll);
+            paymentForm.addEventListener('submit', handlePaymentFormSubmit);
+            document.getElementById('confirm-payment-delete').addEventListener('click', handlePaymentDelete);
+            paymentSearchInput.addEventListener('input', handlePaymentSearch);
+            
+            // Preencher dropdown de clientes
+            populatePaymentClientDropdown();
+        }
+
+        // Carrega pagamentos do localStorage
+        function loadPayments() {
+            try {
+                const savedPayments = localStorage.getItem(PAYMENTS_KEY);
+                if (savedPayments) {
+                    payments = JSON.parse(savedPayments);
+                }
+                filteredPayments = [...payments];
+                renderPayments();
+            } catch (e) {
+                console.error('Erro ao carregar pagamentos:', e);
+                payments = [];
+                filteredPayments = [];
+            }
+        }
+
+        // Carrega clientes do localStorage
+        function loadClients() {
+            try {
+                const savedClients = localStorage.getItem(CLIENTS_KEY);
+                if (savedClients) {
+                    clients = JSON.parse(savedClients);
+                }
+            } catch (e) {
+                console.error('Erro ao carregar clientes:', e);
+                clients = [];
+            }
+        }
+
+        // Salva pagamentos no localStorage
+        function savePayments() {
+            localStorage.setItem(PAYMENTS_KEY, JSON.stringify(payments));
+            updatePaymentStats();
+            renderPayments();
+        }
+
+        // Atualiza as estatísticas financeiras
+        function updatePaymentStats() {
+            const totalRecebido = payments
+                .filter(p => p.status === 'Pago')
+                .reduce((sum, p) => sum + parseFloat(p.value), 0);
+                
+            const pagamentosPendentes = payments.filter(p => p.status === 'Pendente');
+            const totalPendentes = pagamentosPendentes.reduce((sum, p) => sum + parseFloat(p.value), 0);
+            
+            const pagamentosAtrasados = payments.filter(p => p.status === 'Atrasado');
+            const totalAtrasados = pagamentosAtrasados.reduce((sum, p) => sum + parseFloat(p.value), 0);
+            
+            // Calcular média mensal (simplificada)
+            const last6MonthsPayments = payments.filter(p => {
+                const paymentDate = new Date(p.date);
+                const sixMonthsAgo = new Date();
+                sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+                return paymentDate >= sixMonthsAgo && p.status === 'Pago';
+            });
+            
+            const monthlyAverages = {};
+            last6MonthsPayments.forEach(p => {
+                const monthYear = new Date(p.date).toLocaleDateString('pt-BR', { month: 'numeric', year: 'numeric' });
+                if (!monthlyAverages[monthYear]) {
+                    monthlyAverages[monthYear] = { total: 0, count: 0 };
+                }
+                monthlyAverages[monthYear].total += parseFloat(p.value);
+                monthlyAverages[monthYear].count++;
+            });
+            
+            const averages = Object.values(monthlyAverages);
+            const average = averages.length > 0 ? 
+                averages.reduce((sum, m) => sum + (m.total / m.count), 0) / averages.length :
+                0;
+            
+            // Atualizar UI
+            document.getElementById('total-recebido').textContent = formatCurrency(totalRecebido);
+            document.getElementById('total-pendentes').textContent = formatCurrency(totalPendentes);
+            document.getElementById('total-atrasados').textContent = formatCurrency(totalAtrasados);
+            document.getElementById('media-mensal').textContent = formatCurrency(average);
+            
+            document.getElementById('count-pendentes').textContent = pagamentosPendentes.length;
+            document.getElementById('count-atrasados').textContent = pagamentosAtrasados.length;
+        }
+
+        // Formatar valor monetário
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        }
+
+        // Preencher dropdown de clientes para pagamentos
+        function populatePaymentClientDropdown() {
+            paymentClientSelect.innerHTML = '';
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'Selecione um cliente';
+            paymentClientSelect.appendChild(emptyOption);
+            
+            clients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = `${client.name} - ${client.company}`;
+                paymentClientSelect.appendChild(option);
+            });
+            
+            // Se não houver clientes, exibir mensagem
+            if (clients.length === 0) {
+                const noClientOption = document.createElement('option');
+                noClientOption.value = '';
+                noClientOption.disabled = true;
+                noClientOption.textContent = 'Nenhum cliente cadastrado';
+                paymentClientSelect.appendChild(noClientOption);
+            }
+        }
+
+        // Renderiza os pagamentos na tabela
+        function renderPayments() {
+            if (filteredPayments.length === 0) {
+                if (payments.length === 0) {
+                    // Se não há pagamentos, exibe estado vazio
+                    paymentTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="py-8 text-center">
+                                <div class="flex flex-col items-center justify-center">
+                                    <div class="bg-gray-100 rounded-full p-4 mb-4">
+                                        <i class="fas fa-money-bill-wave text-2xl text-gray-400"></i>
+                                    </div>
+                                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum pagamento registrado</h3>
+                                    <p class="text-gray-500 max-w-md mx-auto mb-4">
+                                        Comece criando um novo registro de pagamento para controlar o financeiro
+                                    </p>
+                                    <button onclick="openPaymentFormModal()" class="bg-green-500 hover:bg-green-600 transition flex items-center gap-2 text-white px-4 py-2 rounded-lg">
+                                        <i class="fas fa-plus"></i>
+                                        <span>Novo Pagamento</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    // Se há pagamentos mas não há correspondência com o filtro
+                    paymentNoResults.classList.remove('hidden');
+                    paymentTableBody.innerHTML = '';
+                }
+                paymentLoadingContainer.classList.add('hidden');
+                return;
+            }
+            
+            paymentNoResults.classList.add('hidden');
+            paymentTableBody.innerHTML = '';
+            
+            // Ordena antes de renderizar, se necessário
+            let paymentsToRender = [...filteredPayments];
+            if (paymentSortConfig.key) {
+                paymentsToRender.sort((a, b) => {
+                    let valueA, valueB;
+                    
+                    if (paymentSortConfig.key === 'client') {
+                        valueA = a.client_name.toLowerCase();
+                        valueB = b.client_name.toLowerCase();
+                    } else if (paymentSortConfig.key === 'value') {
+                        valueA = parseFloat(a.value);
+                        valueB = parseFloat(b.value);
+                    } else {
+                        valueA = new Date(a.date);
+                        valueB = new Date(b.date);
+                    }
+                    
+                    if (valueA < valueB) {
+                        return paymentSortConfig.direction === 'asc' ? -1 : 1;
+                    }
+                    if (valueA > valueB) {
+                        return paymentSortConfig.direction === 'asc' ? 1 : -1;
+                    }
+                    return 0;
+                });
+            }
+            
+            // Renderiza cada pagamento
+            paymentsToRender.forEach(payment => {
+                const iconInfo = paymentMethodIcons[payment.method] || { icon: 'fas fa-money-bill-wave', class: 'payment-default' };
+                const client = clients.find(c => c.id === payment.client_id);
+                const clientName = client ? client.name : 'Cliente desconhecido';
+                const company = client ? client.company : '';
+                
+                const row = document.createElement('tr');
+                row.className = 'payment-row hover:bg-gray-50 transition';
+                row.innerHTML = `
+                    <td class="py-4 px-6 whitespace-nowrap">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center">
+                                <i class="fas fa-user text-gray-500"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">${clientName}</p>
+                                <p class="text-sm text-gray-500">${company}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 whitespace-nowrap">
+                        <span class="font-semibold">${formatCurrency(payment.value)}</span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span>${new Date(payment.date).toLocaleDateString('pt-BR')}</span>
+                    </td>
+                    <td class="py-4 px-6 whitespace-nowrap">
+                        <div class="flex items-center gap-3">
+                            <div class="payment-icon ${iconInfo.class}">
+                                <i class="${iconInfo.icon}"></i>
+                            </div>
+                            <span>${payment.method}</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="status-badge ${paymentStatusClasses[payment.status]}">${paymentStatusLabels[payment.status]}</span>
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        <div class="flex gap-2 justify-end">
+                            <button onclick="openPaymentEditModal('${payment.id}')" class="p-2 rounded-lg text-gray-500 hover:text-green-600 hover:bg-green-50 transition">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="openDeletePaymentModal('${payment.id}')" class="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button onclick="downloadComprovante('${payment.id}')" class="p-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition">
+                                <i class="fas fa-file-download"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                paymentTableBody.appendChild(row);
+            });
+            
+            // Esconde o loading se não houver mais dados para carregar
+            paymentLoadingContainer.classList.add('hidden');
+        }
+
+        // Abre o modal do formulário para criação
+        function openPaymentFormModal() {
+            resetPaymentForm();
+            document.getElementById('payment-form-modal-title').textContent = 'Novo Pagamento';
+            document.getElementById('payment-save-button-text').textContent = 'Registrar Pagamento';
+            paymentFormModal.classList.remove('hidden');
+            setTimeout(() => {
+                paymentFormModal.style.opacity = '1';
+                // Definir data atual como padrão
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('payment-date').value = today;
+            }, 10);
+        }
+
+        // Abre o modal do formulário para edição
+        function openPaymentEditModal(id) {
+            const payment = payments.find(p => p.id === id);
+            if (!payment) return;
+            
+            currentPaymentEditId = id;
+            document.getElementById('payment-form-modal-title').textContent = 'Editar Pagamento';
+            document.getElementById('payment-save-button-text').textContent = 'Atualizar Pagamento';
+            
+            paymentIdInput.value = payment.id;
+            document.getElementById('payment-client-select').value = payment.client_id;
+            document.getElementById('payment-value').value = payment.value;
+            document.getElementById('payment-date').value = new Date(payment.date).toISOString().split('T')[0];
+            document.getElementById('payment-method').value = payment.method;
+            document.getElementById('payment-status').value = payment.status;
+            document.getElementById('payment-reference').value = payment.reference || '';
+            document.getElementById('payment-notes').value = payment.notes || '';
+            
+            paymentFormModal.classList.remove('hidden');
+            setTimeout(() => {
+                paymentFormModal.style.opacity = '1';
+            }, 10);
+        }
+
+        // Fecha o modal do formulário de pagamento
+        function closePaymentFormModal() {
+            paymentFormModal.style.opacity = '0';
+            setTimeout(() => {
+                paymentFormModal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Reseta o formulário de pagamento
+        function resetPaymentForm() {
+            paymentIdInput.value = '';
+            document.getElementById('payment-client-select').value = '';
+            document.getElementById('payment-value').value = '';
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('payment-date').value = today;
+            document.getElementById('payment-method').value = '';
+            document.getElementById('payment-status').value = 'Pago';
+            document.getElementById('payment-reference').value = '';
+            document.getElementById('payment-notes').value = '';
+            
+            currentPaymentEditId = null;
+        }
+
+        // Manipula o envio do formulário de pagamento
+        function handlePaymentFormSubmit(e) {
+            e.preventDefault();
+            
+            const clientId = document.getElementById('payment-client-select').value;
+            const value = document.getElementById('payment-value').value;
+            const date = document.getElementById('payment-date').value;
+            const method = document.getElementById('payment-method').value;
+            const status = document.getElementById('payment-status').value;
+            const reference = document.getElementById('payment-reference').value;
+            const notes = document.getElementById('payment-notes').value;
+            
+            // Validação
+            if (!clientId || !value || !date || !method || !status) {
+                showToast('Preencha todos os campos obrigatórios!', 'danger');
+                return;
+            }
+            
+            // Encontra o cliente
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                showToast('Cliente não encontrado!', 'danger');
+                return;
+            }
+            
+            const paymentData = { 
+                id: currentPaymentEditId || generateId(),
+                client_id: clientId,
+                client_name: client.name,
+                company: client.company,
+                value: value,
+                date: date,
+                method: method,
+                status: status,
+                reference: reference,
+                notes: notes,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
+            
+            if (currentPaymentEditId) {
+                // Atualizar pagamento existente
+                const index = payments.findIndex(p => p.id === currentPaymentEditId);
+                if (index !== -1) {
+                    payments[index] = paymentData;
+                    savePayments();
+                    showToast('Pagamento atualizado com sucesso!');
+                }
+            } else {
+                // Adicionar novo pagamento
+                payments.push(paymentData);
+                savePayments();
+                showToast('Pagamento registrado com sucesso!');
+            }
+            
+            closePaymentFormModal();
+        }
+
+        // Gera ID único para pagamento
+        function generateId() {
+            return 'pay_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+        }
+
+        // Abre o modal de confirmação de exclusão
+        function openDeletePaymentModal(id) {
+            const payment = payments.find(p => p.id === id);
+            if (!payment) return;
+            
+            currentPaymentToDelete = id;
+            const client = clients.find(c => c.id === payment.client_id) || {};
+            paymentToDeleteEl.textContent = `${formatCurrency(payment.value)} de ${client.name || 'Cliente desconhecido'}`;
+            deletePaymentModal.classList.remove('hidden');
+            setTimeout(() => {
+                deletePaymentModal.style.opacity = '1';
+            }, 10);
+        }
+
+        // Fecha o modal de confirmação de exclusão
+        function closeDeletePaymentModal() {
+            deletePaymentModal.style.opacity = '0';
+            setTimeout(() => {
+                deletePaymentModal.classList.add('hidden');
+                currentPaymentToDelete = null;
+            }, 300);
+        }
+
+        // Exclui um pagamento
+        function handlePaymentDelete() {
+            if (!currentPaymentToDelete) return;
+            
+            payments = payments.filter(p => p.id !== currentPaymentToDelete);
+            savePayments();
+            showToast('Pagamento excluído com sucesso!', 'danger');
+            closeDeletePaymentModal();
+        }
+
+        // Ordenação de pagamentos
+        function sortPayments(key) {
+            if (paymentSortConfig.key === key) {
+                paymentSortConfig.direction = paymentSortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                paymentSortConfig.key = key;
+                paymentSortConfig.direction = 'asc';
+            }
+            
+            // Atualiza ícones
+            document.querySelectorAll('[id^="sort-"]').forEach(icon => {
+                icon.className = 'fas fa-sort text-gray-400';
+            });
+            
+            const icon = document.getElementById(`sort-${key}-icon`);
+            if (icon) {
+                icon.className = paymentSortConfig.direction === 'asc' ? 
+                    'fas fa-sort-up text-green-500' : 
+                    'fas fa-sort-down text-green-500';
+            }
+            
+            renderPayments();
+        }
+
+        // Manipula busca de pagamentos
+        function handlePaymentSearch() {
+            const term = paymentSearchInput.value.toLowerCase().trim();
+            
+            if (!term) {
+                filteredPayments = [...payments];
+            } else {
+                filteredPayments = payments.filter(pay => {
+                    const client = clients.find(c => c.id === pay.client_id) || {};
+                    return (
+                        (client.name && client.name.toLowerCase().includes(term)) ||
+                        (pay.value && pay.value.toString().includes(term)) ||
+                        (pay.method && pay.method.toLowerCase().includes(term)) ||
+                        (pay.status && pay.status.toLowerCase().includes(term)) ||
+                        (pay.reference && pay.reference.toLowerCase().includes(term))
+                    );
+                });
+            }
+            
+            renderPayments();
+        }
+
+        // Manipula o scroll para carregar mais pagamentos
+        function handlePaymentScroll() {
+            if (isLoading) return;
+            
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            const scrollPosition = scrollTop + clientHeight;
+            
+            if (scrollPosition >= scrollHeight - 100 && filteredPayments.length > PAYMENTS_PER_PAGE) {
+                loadMorePayments();
+            }
+        }
+
+        // Carrega mais pagamentos
+        function loadMorePayments() {
+            isLoading = true;
+            paymentLoadingContainer.classList.remove('hidden');
+            
+            setTimeout(() => {
+                currentPage++;
+                renderPayments();
+                isLoading = false;
+            }, 800);
+        }
+
+        // Mostra toast de confirmação
+        function showToast(message, type = 'success') {
+            const toastIcon = document.getElementById('toast-icon');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.className = `fixed bottom-6 right-6 text-white py-3 px-6 rounded-lg shadow-lg flex items-center gap-3 z-50`;
+            
+            if (type === 'success') {
+                toast.classList.add('bg-success');
+                toastIcon.className = 'fas fa-check-circle';
+            } else {
+                toast.classList.add('bg-danger');
+                toastIcon.className = 'fas fa-exclamation-circle';
+            }
+            
+            toast.classList.remove('opacity-0');
+            toast.classList.remove('translate-y-10');
+            toast.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                toast.classList.add('translate-y-10');
+            }, 3000);
+        }
+        
+        // Simulação de download de comprovante
+        function downloadComprovante(id) {
+            const payment = payments.find(p => p.id === id);
+            if (payment) {
+                showToast(`Comprovante ${payment.reference || payment.id} gerado para download`);
+                setTimeout(() => {
+                    alert(`No ambiente de produção, esta função faria o download do comprovante para: ${payment.client_name}, valor: ${formatCurrency(payment.value)}`);
+                }, 100);
+            }
+        }
+        
+        // Navega para outras páginas
+        function navigateTo(page) {
+            alert(`Esta ação levaria para a página de ${page}, que deve implementar em seu sistema`);
+        }
+    </script>
+</body>
+</html>
