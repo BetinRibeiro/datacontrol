@@ -431,7 +431,7 @@
             
             const sampleData = [];
             
-            for (let i = 0; i < 20; i++) {
+            for (let i = 0; i < 1; i++) {
                 const name = names[Math.floor(Math.random() * names.length)];
                 const company = companies[Math.floor(Math.random() * companies.length)];
                 const email = `${name.split(' ')[0].toLowerCase()}${Math.floor(Math.random() * 100)}@${company.split(' ').join('').toLowerCase()}.com`.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
